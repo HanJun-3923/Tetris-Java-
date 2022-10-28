@@ -3,7 +3,8 @@ import javax.swing.*;
 enum BlockShape {
     NONE, 
     Z, S, T, J, L, I, O,
-    SLD_Z, SLD_S, SLD_T, SLD_J, SLD_L, SLD_I, SLD_O
+    SLD_Z, SLD_S, SLD_T, SLD_J, SLD_L, SLD_I, SLD_O,
+    SOLID, LIQUID
 };
 
 
@@ -46,6 +47,7 @@ public class GameBoard extends JPanel {
 
         //게임 시작
         InGame.setNextBlocks();
+        InGame.setCrntBlockShape();
         InGame.setCrntBlock();
         InGame.initPosition();
         InGame.uploadCrntBlock();

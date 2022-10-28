@@ -42,6 +42,9 @@ public class Paint extends JPanel {
                     setColorAccordingToMino(g, InGame.table[r][c].mino); // Set Graphcis Color according to Table's mino
                     g.fillRect(GameBoard.X + GameBoard.BLOCK_SIZE * c, GameBoard.Y + GameBoard.BLOCK_SIZE * r, GameBoard.BLOCK_SIZE, GameBoard.BLOCK_SIZE);
                     continue;
+                } else { // 블럭이 존재하지 않는다면
+                    g.setColor(Color.WHITE);
+                    g.fillRect(GameBoard.X + GameBoard.BLOCK_SIZE * c, GameBoard.Y + GameBoard.BLOCK_SIZE * r, GameBoard.BLOCK_SIZE, GameBoard.BLOCK_SIZE);
                 }
             }
         }

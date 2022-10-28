@@ -35,20 +35,31 @@ public class Window extends JFrame implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if(e.getKeyCode() == KeyEvent.VK_RIGHT) { // Right Arrow
-            
+            if(InGame.movable(InGame.Direction.RIGHT))
+                InGame.move(InGame.Direction.RIGHT);
+        } 
+        else if(e.getKeyCode() == KeyEvent.VK_LEFT) { // Left Arrow
+            if(InGame.movable(InGame.Direction.LEFT))
+                InGame.move(InGame.Direction.LEFT);
         }
-        if(e.getKeyCode() == KeyEvent.VK_LEFT) { // Left Arrow
-
+        else if(e.getKeyCode() == KeyEvent.VK_DOWN) { // Down Arrow
+            if(InGame.movable(InGame.Direction.DOWN))
+                InGame.move(InGame.Direction.DOWN);
         }
-        if(e.getKeyCode() == KeyEvent.VK_DOWN) { // Down Arrow
-
+        else if(e.getKeyCode() == KeyEvent.VK_UP) {
+            if(InGame.movable(InGame.Direction.UP))
+                InGame.move(InGame.Direction.UP);
         }
+        else if(e.getKeyCode() == KeyEvent.VK_SPACE) {
+            InGame.hardDrop();
+        }
+        System.out.println(e.getKeyCode());
         repaint();
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
-
+        // repaint(); <- 해야할지 말지 잘 모르겠음
     }
     
 }
