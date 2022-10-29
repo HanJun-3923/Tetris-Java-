@@ -54,19 +54,19 @@ public class Paint extends JPanel {
     private void setColorAccordingToMino(Graphics g, BlockShape mino) {
         // Color Profile from Jstris
 
-        if(mino == BlockShape.I) {
+        if(mino == BlockShape.I || mino == BlockShape.SLD_I) {
             g.setColor(new Color(71, 153, 210)); // RGB Color SkyBlue
-        } else if (mino == BlockShape.T) { 
+        } else if (mino == BlockShape.T || mino == BlockShape.SLD_T) { 
             g.setColor(new Color(161, 53, 134)); // RGB Color Purple
-        } else if (mino == BlockShape.O) { 
+        } else if (mino == BlockShape.O || mino == BlockShape.SLD_O) { 
             g.setColor(new Color(217, 162, 55)); // RGB Color Yellow
-        } else if (mino == BlockShape.S) { 
+        } else if (mino == BlockShape.S || mino == BlockShape.SLD_S) { 
             g.setColor(new Color(111, 175, 52)); // RGB Color Green
-        } else if (mino == BlockShape.Z) { 
+        } else if (mino == BlockShape.Z || mino == BlockShape.SLD_Z) { 
             g.setColor(new Color(144, 34, 44)); // RGB Color Red
-        } else if (mino == BlockShape.L) { 
+        } else if (mino == BlockShape.L || mino == BlockShape.SLD_L) { 
             g.setColor(new Color(211, 100, 40)); // RGB Color Orange
-        } else if (mino == BlockShape.J) { 
+        } else if (mino == BlockShape.J || mino == BlockShape.SLD_J) { 
             g.setColor(new Color(29, 45, 133)); // RGB Color Blue
         } else {
             g.setColor(Color.black);

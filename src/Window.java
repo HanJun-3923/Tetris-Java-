@@ -51,6 +51,7 @@ public class Window extends JFrame implements KeyListener {
         }
         else if(e.getKeyCode() == KeyEvent.VK_SPACE) {
             GameBoard.player1.hardDrop();
+            GameBoard.player1.setNewBlock();
         }
         repaint();
     }

@@ -3,7 +3,7 @@ enum Direction { // 방향에 대한 열거형
 };
 
 public class InGame {
-    public final int BAG = 7; // 한 가방 속에 존재하는 블록의 수
+    private final int BAG = 7; // 한 가방 속에 존재하는 블록의 수
     class Position { // 좌표를 표현하기 위한 클래스(행렬 기준 좌표)
         int r;
         int c;
@@ -12,17 +12,40 @@ public class InGame {
             this.c = c;
         }
     };
+    // Main Game Board
+    class Table {
+        boolean isVisible;
+        BlockShape mino;
+        public Table(boolean isVisible, BlockShape mino) {
+            this.isVisible = isVisible;
+            this.mino = mino;
+        }
+        
+    }  
     public Position pos; // 블록의 좌표 (행렬)
     public int rotation = 0; // 회전된 수
-    public final int INITIAL_POS_C = 3; // 새로운 블록의 열
+    private final int INITIAL_POS_C = 3; // 새로운 블록의 열
     public final int INITIAL_POS_R = 0; // 새로운 블록의 행
 
     public int numOfUsedBlocks = 0; // 놓아진 모든 블록의 수
 
     public BlockShape[] nextBlocks = new BlockShape[BAG * 2];
     public BlockShape crntBlockShape = BlockShape.NONE;
-    public GameBoard.Table[][] table = new GameBoard.Table[GameBoard.TABLE_HEIGHT][GameBoard.TABLE_WIDTH];
+    public Table[][] table = new Table[GameBoard.TABLE_HEIGHT][GameBoard.TABLE_WIDTH];
     public BlockShape[][] crntBlock = new BlockShape[4][4];
+
+    public InGame() {
+        // 다차원 배열 할당
+        for(int r = 0; r < GameBoard.TABLE_HEIGHT; r++) {
+            for(int c = 0; c < GameBoard.TABLE_WIDTH; c++) {
+                table[r][c] = new Table(false, BlockShape.NONE);
+            }
+        } 
+        for(int i = 0; i < BAG * 2; i++) {
+            nextBlocks[i] = BlockShape.NONE;
+        }
+    }
+
 
     public void setNextBlocks() { 
         if(nextBlocks[0] == BlockShape.NONE) { // set nextBlocks Initially
@@ -38,7 +61,7 @@ public class InGame {
                             if(nextBlocks[j] == nextBlocks[i]) again = true; 
                     }
                     else { // if i is in second BAG
-                        for(int j = 7; j < i; j++) {
+                        for(int j = BAG; j < i; j++) {
                             // if any next has same BlockShape with another in its bag, it goes again.
                             if(nextBlocks[j] == nextBlocks[i]) again = true; 
                         }
@@ -52,12 +75,12 @@ public class InGame {
                 int j = i + BAG;
                 nextBlocks[i] = nextBlocks[j];
             }
-            for(int i = 7; i < 14; i++) {
+            for(int i = BAG; i < 14; i++) {
                 boolean again;
                 do {
                     again = false;
                     nextBlocks[i] = intToBlockShape((int)(Math.random() * 10) % 7 + 1);
-                    for(int j = 7; j < i; j++) {
+                    for(int j = BAG; j < i; j++) {
                         if(nextBlocks[j] == nextBlocks[i]) again = true;
                     }
                 } while(again);
@@ -92,7 +115,38 @@ public class InGame {
         }
     }
     public void hardDrop() {
-        
+        while(movable(Direction.DOWN)) {
+            move(Direction.DOWN);
+        }
+        solidification();
+    }
+    public void solidification() {
+        // change liquid blocks into solid blocks
+        BlockShape solidBlockShape; // 변경될 solid 블록
+        if(crntBlockShape == BlockShape.I) solidBlockShape = BlockShape.SLD_I;
+        else if(crntBlockShape == BlockShape.T) solidBlockShape = BlockShape.SLD_T;
+        else if(crntBlockShape == BlockShape.O) solidBlockShape = BlockShape.SLD_O;
+        else if(crntBlockShape == BlockShape.S) solidBlockShape = BlockShape.SLD_S;
+        else if(crntBlockShape == BlockShape.Z) solidBlockShape = BlockShape.SLD_Z;
+        else if(crntBlockShape == BlockShape.L) solidBlockShape = BlockShape.SLD_L;
+        else solidBlockShape = BlockShape.SLD_J;
+
+        // solidification
+        for(int r = 0; r < 4; r++) {
+            for(int c = 0; c < 4; c++) {
+                if(crntBlock[r][c] == crntBlockShape) {
+                    crntBlock[r][c] = solidBlockShape;
+                }
+            }
+        }
+        uploadCrntBlock();
+        numOfUsedBlocks++;
+    }
+    public void setNewBlock() {
+        setCrntBlock();
+        setCrntBlockShape();
+        initPosition();
+        uploadCrntBlock();
     }
     public void initLiquidBlock() {
         // init Liquid Components
@@ -175,7 +229,7 @@ public class InGame {
     }
     private BlockShape solidOrLiquid(Position testPos) {
         // 테트리스 화면 밖 모든 블럭은 Solid 블록이다.
-        
+
         // Array Index Out Of Bounds Exception
         if(testPos.c < 0 || testPos.c >= GameBoard.TABLE_WIDTH || testPos.r >= GameBoard.TABLE_HEIGHT || testPos.r < 0) 
             return BlockShape.SOLID; 
