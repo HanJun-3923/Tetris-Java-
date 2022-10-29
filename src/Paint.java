@@ -8,7 +8,7 @@ public class Paint extends JPanel {
     @Override
     public void paint(Graphics g) {
         super.paintComponents(g);
-        paintBlock(g); // paint Blocks according to Table's Data.
+        paintBlock(g, GameBoard.player1); // paint Blocks according to Table's Data.
         paintGrid(g); // paint Border line and Grid of Game Board.
     }
     
@@ -35,11 +35,11 @@ public class Paint extends JPanel {
     }
 
     // paint Blocks according to Table's Data
-    private void paintBlock(Graphics g) {
+    private void paintBlock(Graphics g, InGame player) {
         for (int r = 0; r < GameBoard.TABLE_HEIGHT; r++) {
             for (int c = 0; c < GameBoard.TABLE_WIDTH; c++) {
-                if(InGame.table[r][c].isVisible) { // 블럭이 존재한다면
-                    setColorAccordingToMino(g, InGame.table[r][c].mino); // Set Graphcis Color according to Table's mino
+                if(player.table[r][c].isVisible) { // 블럭이 존재한다면
+                    setColorAccordingToMino(g, player.table[r][c].mino); // Set Graphcis Color according to Table's mino
                     g.fillRect(GameBoard.X + GameBoard.BLOCK_SIZE * c, GameBoard.Y + GameBoard.BLOCK_SIZE * r, GameBoard.BLOCK_SIZE, GameBoard.BLOCK_SIZE);
                     continue;
                 } else { // 블럭이 존재하지 않는다면

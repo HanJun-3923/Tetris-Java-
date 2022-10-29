@@ -184,19 +184,19 @@ public class BlockData {
     };
     public static int[][] fetch(BlockShape blockShape) {
         if(blockShape == BlockShape.I) {
-            return ITetromino[InGame.rotation];
+            return ITetromino[GameBoard.player1.rotation];
         } else if(blockShape == BlockShape.T) {
-            return TTetromino[InGame.rotation];
+            return TTetromino[GameBoard.player1.rotation];
         } else if(blockShape == BlockShape.O) {
-            return OTetromino[InGame.rotation];
+            return OTetromino[GameBoard.player1.rotation];
         } else if(blockShape == BlockShape.S) {
-            return STetromino[InGame.rotation];
+            return STetromino[GameBoard.player1.rotation];
         } else if(blockShape == BlockShape.Z) {
-            return ZTetromino[InGame.rotation];
+            return ZTetromino[GameBoard.player1.rotation];
         } else if(blockShape == BlockShape.L) {
-            return LTetromino[InGame.rotation];
+            return LTetromino[GameBoard.player1.rotation];
         } else {
-            return JTetromino[InGame.rotation];
+            return JTetromino[GameBoard.player1.rotation];
         }
     }
 }

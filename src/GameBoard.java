@@ -21,8 +21,9 @@ public class GameBoard extends JPanel {
     public static final int TABLE_WIDTH = 10; // GameBoard(Table) Width
     public static final int TABLE_HEIGHT = 20; // GameBoard(Table) Height
     
+    public static InGame player1 = new InGame();
     // Main Game Board
-    static class Table {
+    class Table {
         boolean isVisible;
         BlockShape mino;
         Table(boolean isVisible, BlockShape mino) {
@@ -38,28 +39,23 @@ public class GameBoard extends JPanel {
         // 다차원 배열 할당
         for(int r = 0; r < TABLE_HEIGHT; r++) {
             for(int c = 0; c < TABLE_WIDTH; c++) {
-                InGame.table[r][c] = new Table(false, BlockShape.NONE);
+                player1.table[r][c] = new Table(false, BlockShape.NONE);
             }
         } 
-        for(int i = 0; i < InGame.BAG * 2; i++) {
-            InGame.nextBlocks[i] = BlockShape.NONE;
+        for(int i = 0; i < player1.BAG * 2; i++) {
+            player1.nextBlocks[i] = BlockShape.NONE;
         }
 
         //게임 시작
-        InGame.setNextBlocks();
-        InGame.setCrntBlockShape();
-        InGame.setCrntBlock();
-        InGame.initPosition();
-        InGame.uploadCrntBlock();
+        player1.setNextBlocks();
+        player1.setCrntBlockShape();
+        player1.setCrntBlock();
+        player1.initPosition();
+        player1.uploadCrntBlock();
         repaint();
         
 
         // put nowBlock's Data into Table
         // Paint
-    }
-    public void setBlockData(int r, int c, int data) {
-        BlockShape blockShape = InGame.intToBlockShape(data);
-        InGame.table[r][c].mino = blockShape; // put BlockShape data
-        InGame.table[r][c].isVisible = true; // set visible true
     }
 }
