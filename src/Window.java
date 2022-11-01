@@ -33,26 +33,37 @@ public class Window extends JFrame implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if(e.getKeyCode() == KeyEvent.VK_RIGHT) { // Right Arrow
+        int key = e.getKeyCode();
+        if(key == KeyEvent.VK_RIGHT) { // Right Arrow
             if(GameBoard.player1.movable(Direction.RIGHT))
                 GameBoard.player1.move(Direction.RIGHT);
         } 
-        else if(e.getKeyCode() == KeyEvent.VK_LEFT) { // Left Arrow
+        else if(key == KeyEvent.VK_LEFT) { // Left Arrow
             if(GameBoard.player1.movable(Direction.LEFT))
                 GameBoard.player1.move(Direction.LEFT);
         }
-        else if(e.getKeyCode() == KeyEvent.VK_DOWN) { // Down Arrow
+        else if(key == KeyEvent.VK_DOWN) { // Down Arrow
             if(GameBoard.player1.movable(Direction.DOWN))
                 GameBoard.player1.move(Direction.DOWN);
         }
-        else if(e.getKeyCode() == KeyEvent.VK_UP) {
+        else if(key == KeyEvent.VK_UP) {
             if(GameBoard.player1.movable(Direction.UP))
                 GameBoard.player1.move(Direction.UP);
         }
-        else if(e.getKeyCode() == KeyEvent.VK_SPACE) {
+        else if(key == KeyEvent.VK_SPACE) {
             GameBoard.player1.hardDrop();
             GameBoard.player1.setNewBlock();
         }
+        else if(key == KeyEvent.VK_D) {
+            GameBoard.player1.rotation(Direction.CLOCKWISE);
+        }
+        else if(key == KeyEvent.VK_S) {
+            GameBoard.player1.rotation(Direction.COUNTER_CLOCKWISE);
+        }
+        else if(key == KeyEvent.VK_SHIFT) {
+            
+        }
+        GameBoard.player1.uploadCrntBlock();
         repaint();
     }
 

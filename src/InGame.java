@@ -1,5 +1,5 @@
 enum Direction { // 방향에 대한 열거형
-    LEFT, RIGHT, DOWN, UP
+    NONE, LEFT, RIGHT, DOWN, UP, CLOCKWISE, COUNTER_CLOCKWISE
 };
 
 public class InGame {
@@ -11,7 +11,11 @@ public class InGame {
             this.r = r;
             this.c = c;
         }
-    };
+        public void set(int r, int c) {
+            this.r = r;
+            this.c = c;
+        }
+    }; 
     // Main Game Board
     class Table {
         boolean isVisible;
@@ -20,10 +24,29 @@ public class InGame {
             this.isVisible = isVisible;
             this.mino = mino;
         }
-        
     }  
+    class Rotation {
+        int rotation;
+        public void plus(int n) {
+            rotation += n;
+            while(rotation >= 4) rotation -= 4;
+            setCrntBlock();
+        }
+        public void minus(int n) {
+            rotation -= n;
+            while(rotation < 0) rotation += 4;
+            setCrntBlock();
+        }
+        public void set(int n) {
+            rotation = n;
+            setCrntBlock();
+        }
+        public Rotation(int n) {
+            rotation = n;
+        }
+    }
     public Position pos; // 블록의 좌표 (행렬)
-    public int rotation = 0; // 회전된 수
+    public Rotation rotation = new Rotation(0); // 회전된 수
     private final int INITIAL_POS_C = 3; // 새로운 블록의 열
     public final int INITIAL_POS_R = 0; // 새로운 블록의 행
 
@@ -46,7 +69,13 @@ public class InGame {
         }
     }
 
-
+    //public
+    public void hardDrop() {
+        while(movable(Direction.DOWN)) {
+            move(Direction.DOWN);
+        }
+        solidification();
+    }
     public void setNextBlocks() { 
         if(nextBlocks[0] == BlockShape.NONE) { // set nextBlocks Initially
             for(int i = 0; i < BAG * 2; i++) { 
@@ -65,7 +94,6 @@ public class InGame {
                             // if any next has same BlockShape with another in its bag, it goes again.
                             if(nextBlocks[j] == nextBlocks[i]) again = true; 
                         }
-                        
                     }
                 } while(again);
             }
@@ -87,80 +115,12 @@ public class InGame {
             }
         }
     }
-    public void setCrntBlockShape() {
-        crntBlockShape = nextBlocks[numOfUsedBlocks % 7];
-    }
-    public void initPosition() {
-        if(pos == null) pos = new Position(0, 0); // NullPointerException 처리
-        pos.c = INITIAL_POS_C;
-        pos.r = INITIAL_POS_R;
-    }
-    public void setCrntBlock() {
-        int[][] temp = new int[4][4];
-        temp = BlockData.fetch(nextBlocks[numOfUsedBlocks % BAG]);
-        for(int r = 0; r < 4; r++) {
-            for(int c = 0; c < 4; c++) {
-                crntBlock[r][c] = intToBlockShape(temp[r][c]);
-            } 
-        }
-    }
-    public void uploadCrntBlock() {
-        for(int r = 0; r < 4; r++) {
-            for(int c = 0; c < 4; c++) {
-                if(crntBlock[r][c] != BlockShape.NONE) {
-                    table[pos.r + r][pos.c + c].mino = crntBlock[r][c];
-                    table[pos.r + r][pos.c + c].isVisible = true;
-                }
-            }
-        }
-    }
-    public void hardDrop() {
-        while(movable(Direction.DOWN)) {
-            move(Direction.DOWN);
-        }
-        solidification();
-    }
-    public void solidification() {
-        // change liquid blocks into solid blocks
-        BlockShape solidBlockShape; // 변경될 solid 블록
-        if(crntBlockShape == BlockShape.I) solidBlockShape = BlockShape.SLD_I;
-        else if(crntBlockShape == BlockShape.T) solidBlockShape = BlockShape.SLD_T;
-        else if(crntBlockShape == BlockShape.O) solidBlockShape = BlockShape.SLD_O;
-        else if(crntBlockShape == BlockShape.S) solidBlockShape = BlockShape.SLD_S;
-        else if(crntBlockShape == BlockShape.Z) solidBlockShape = BlockShape.SLD_Z;
-        else if(crntBlockShape == BlockShape.L) solidBlockShape = BlockShape.SLD_L;
-        else solidBlockShape = BlockShape.SLD_J;
-
-        // solidification
-        for(int r = 0; r < 4; r++) {
-            for(int c = 0; c < 4; c++) {
-                if(crntBlock[r][c] == crntBlockShape) {
-                    crntBlock[r][c] = solidBlockShape;
-                }
-            }
-        }
-        uploadCrntBlock();
-        numOfUsedBlocks++;
-    }
     public void setNewBlock() {
+        rotation.set(0);
         setCrntBlock();
         setCrntBlockShape();
         initPosition();
         uploadCrntBlock();
-    }
-    public void initLiquidBlock() {
-        // init Liquid Components
-        for(int r = 0; r < GameBoard.TABLE_HEIGHT; r++) {
-            for(int c = 0; c < GameBoard.TABLE_WIDTH; c++) {
-                Position testPos = new Position(r, c);
-                BlockShape testResult = solidOrLiquid(testPos);
-                if(testResult == BlockShape.LIQUID) {
-                    //init
-                    table[r][c].mino = BlockShape.NONE;
-                    table[r][c].isVisible = false;
-                }
-            }
-        }
     }
     public void move(Direction direction) {
         if(direction == Direction.LEFT) {
@@ -175,8 +135,6 @@ public class InGame {
         else { // direction == Direction.UP
             pos.r--;
         }
-        initLiquidBlock();
-        uploadCrntBlock();
     }
     public boolean movable(Direction direction) {
         if(direction == Direction.LEFT) {
@@ -212,7 +170,7 @@ public class InGame {
                 }
             }
         }
-        else { // if(direction == Direction.UP)
+        else if(direction == Direction.UP) {
             for (int r = 0; r < 4; r++) {
                 for (int c = 0; c < 4; c++) {
                     if(crntBlock[r][c] == crntBlockShape) { // 4x4 행렬 속에서 블럭이 존재할 때
@@ -223,9 +181,99 @@ public class InGame {
                 }
             }
         }
+        else { // direction == Direction.NONE
+            for (int r = 0; r < 4; r++) {
+                for (int c = 0; c < 4; c++) {
+                    if(crntBlock[r][c] == crntBlockShape) { // 4x4 행렬 속에서 블럭이 존재할 때
+                        Position testPos = new Position(r + pos.r, c + pos.c);
+                        BlockShape testResult = solidOrLiquid(testPos);
+                        if(testResult == BlockShape.SOLID) return false;
+                    }
+                }
+            }
+        }
 
         // 모든 조건 통과
         return true;
+    }
+    public void rotation(Direction direction) {
+        if(direction == Direction.CLOCKWISE) {
+            rotation.plus(1);
+            if(!movable(Direction.NONE)) wallKick(Direction.CLOCKWISE);
+        }
+        else {
+            rotation.minus(1);
+            if(!movable(Direction.NONE)) wallKick(Direction.COUNTER_CLOCKWISE);
+        }
+        setCrntBlock();
+        uploadCrntBlock();
+    }
+    public void uploadCrntBlock() {
+        initLiquidBlock();
+        for(int r = 0; r < 4; r++) {
+            for(int c = 0; c < 4; c++) {
+                if(crntBlock[r][c] != BlockShape.NONE) {
+                    table[pos.r + r][pos.c + c].mino = crntBlock[r][c];
+                    table[pos.r + r][pos.c + c].isVisible = true;
+                }
+            }
+        }
+    }
+
+
+    //private
+    private void setCrntBlockShape() {
+        crntBlockShape = nextBlocks[numOfUsedBlocks % 7];
+    }
+    private void initPosition() {
+        if(pos == null) pos = new Position(0, 0); // NullPointerException 처리
+        pos.c = INITIAL_POS_C;
+        pos.r = INITIAL_POS_R;
+    }
+    private void setCrntBlock() {
+        int[][] temp = new int[4][4];
+        temp = BlockData.fetch(nextBlocks[numOfUsedBlocks % BAG]);
+        for(int r = 0; r < 4; r++) {
+            for(int c = 0; c < 4; c++) {
+                crntBlock[r][c] = intToBlockShape(temp[r][c]);
+            } 
+        }
+    }
+    private void solidification() {
+        // change liquid blocks into solid blocks
+        BlockShape solidBlockShape; // 변경될 solid 블록
+        if(crntBlockShape == BlockShape.I) solidBlockShape = BlockShape.SLD_I;
+        else if(crntBlockShape == BlockShape.T) solidBlockShape = BlockShape.SLD_T;
+        else if(crntBlockShape == BlockShape.O) solidBlockShape = BlockShape.SLD_O;
+        else if(crntBlockShape == BlockShape.S) solidBlockShape = BlockShape.SLD_S;
+        else if(crntBlockShape == BlockShape.Z) solidBlockShape = BlockShape.SLD_Z;
+        else if(crntBlockShape == BlockShape.L) solidBlockShape = BlockShape.SLD_L;
+        else solidBlockShape = BlockShape.SLD_J;
+
+        // solidification
+        for(int r = 0; r < 4; r++) {
+            for(int c = 0; c < 4; c++) {
+                if(crntBlock[r][c] == crntBlockShape) {
+                    crntBlock[r][c] = solidBlockShape;
+                }
+            }
+        }
+        uploadCrntBlock();
+        numOfUsedBlocks++;
+    }
+    private void initLiquidBlock() {
+        // init Liquid Components
+        for(int r = 0; r < GameBoard.TABLE_HEIGHT; r++) {
+            for(int c = 0; c < GameBoard.TABLE_WIDTH; c++) {
+                Position testPos = new Position(r, c);
+                BlockShape testResult = solidOrLiquid(testPos);
+                if(testResult == BlockShape.LIQUID) {
+                    //init
+                    table[r][c].mino = BlockShape.NONE;
+                    table[r][c].isVisible = false;
+                }
+            }
+        }
     }
     private BlockShape solidOrLiquid(Position testPos) {
         // 테트리스 화면 밖 모든 블럭은 Solid 블록이다.
@@ -241,7 +289,7 @@ public class InGame {
         else 
             return BlockShape.LIQUID;
     }
-    public BlockShape intToBlockShape(int randNum) {
+    private BlockShape intToBlockShape(int randNum) {
         switch(randNum) {
             case 1:
                 return BlockShape.I;
@@ -261,4 +309,189 @@ public class InGame {
                 return BlockShape.NONE;
         }
     }
+    private void wallKick(Direction direction) {
+        // reference: https://tetris.fandom.com/wiki/SRS
+        Position crntPos = new Position(pos.r, pos.c);
+
+
+        // J, L, T, S, Z Tetromino Wall Kick Data
+        if(direction == Direction.CLOCKWISE) {
+            if(crntBlockShape == BlockShape.J || crntBlockShape == BlockShape.L || crntBlockShape == BlockShape.T || crntBlockShape == BlockShape.S || crntBlockShape == BlockShape.Z) {
+                // Test 1
+                // (-1, 0) (1, 0) (1, 0) (-1, 0)
+                if(rotation.rotation == 1) move(Direction.LEFT);
+                else if(rotation.rotation == 2) move(Direction.RIGHT);
+                else if(rotation.rotation == 3) move(Direction.RIGHT);
+                else move(Direction.LEFT);
+
+
+                if(movable(Direction.NONE)) return;
+
+                // Test 2
+                // (-1, 1) (1, -1) (1, 1) (-1, -1)
+                if(rotation.rotation == 1) move(Direction.UP);
+                else if(rotation.rotation == 2) move(Direction.DOWN);
+                else if(rotation.rotation == 3) move(Direction.UP);
+                else move(Direction.DOWN);
+
+                if(movable(Direction.NONE)) return;
+                else pos.set(crntPos.r, crntPos.c);
+
+                // Test 3
+                // (0. -2) (0, 2) (0, -2) (0, 2)
+                if(rotation.rotation == 1) { move(Direction.DOWN); move(Direction.DOWN); }
+                else if(rotation.rotation == 2) { move(Direction.UP); move(Direction.UP); }
+                else if(rotation.rotation == 3) { move(Direction.DOWN); move(Direction.DOWN); }
+                else { move(Direction.UP); move(Direction.UP); }
+            
+                if(movable(Direction.NONE)) return;
+
+                // Test 4
+                // (-1, -2) (1, 2) (1, -2) (-1, 2)
+                if(rotation.rotation == 1) move(Direction.LEFT);
+                else if(rotation.rotation == 2) move(Direction.RIGHT);
+                else if(rotation.rotation == 3) move(Direction.RIGHT);
+                else move(Direction.LEFT);
+
+                if(movable(Direction.NONE)) return;
+                else { pos.set(crntPos.r, crntPos.c); rotation.minus(1); } // 모든 테스트 실패 => 원위치
+            } 
+            else if(crntBlockShape == BlockShape.I) {
+                // Test 1
+                // (-2, 0) (-1, 0) (2, 0) (1, 0)
+                if(rotation.rotation == 1) { move(Direction.LEFT); move(Direction.LEFT); }
+                else if(rotation.rotation == 2) move(Direction.LEFT);
+                else if(rotation.rotation == 3) { move(Direction.RIGHT); move(Direction.RIGHT); }
+                else move(Direction.RIGHT);
+
+                if(movable(Direction.NONE)) return;
+                else pos.set(crntPos.r, crntPos.c);
+
+                // Test 2
+                // (1, 0) (2, 0) (-1, 0) (-2, 0)
+                if(rotation.rotation == 1) move(Direction.RIGHT);
+                else if(rotation.rotation == 2) { move(Direction.RIGHT); move(Direction.RIGHT); }
+                else if(rotation.rotation == 3) move(Direction.LEFT);
+                else { move(Direction.LEFT); move(Direction.LEFT); }
+
+                if(movable(Direction.NONE)) return;
+                else pos.set(crntPos.r, crntPos.c);
+
+                // Test 3
+                // (-2, -1) (-1, 2) (2, 1) (1, -2)
+                if(rotation.rotation == 1) { move(Direction.LEFT); move(Direction.LEFT); move(Direction.DOWN); }
+                else if(rotation.rotation == 2) { move(Direction.LEFT); move(Direction.UP); move(Direction.UP); }
+                else if(rotation.rotation == 3) { move(Direction.RIGHT); move(Direction.RIGHT); move(Direction.UP); }
+                else { move(Direction.RIGHT); move(Direction.DOWN); move(Direction.DOWN); }
+            
+                if(movable(Direction.NONE)) return;
+
+                // Test 4
+                // (1, 2) (2, -1) (-1, -2) (-2, 1)
+                if(rotation.rotation == 1) { move(Direction.RIGHT); move(Direction.UP); move(Direction.UP); }
+                else if(rotation.rotation == 2) { move(Direction.RIGHT); move(Direction.RIGHT); move(Direction.DOWN); }
+                else if(rotation.rotation == 3) { move(Direction.LEFT); move(Direction.DOWN); move(Direction.DOWN); }
+                else { move(Direction.LEFT); move(Direction.LEFT); move(Direction.UP); }
+
+                if(movable(Direction.NONE)) return;
+                else { pos.set(crntPos.r, crntPos.c); rotation.minus(1); } // 모든 테스트 실패 => 원위치
+            }
+        }
+        else { // Direction.COUNTER_CLOCKWISE
+            if(crntBlockShape == BlockShape.J || crntBlockShape == BlockShape.L || crntBlockShape == BlockShape.T || crntBlockShape == BlockShape.S || crntBlockShape == BlockShape.Z) {
+                // Test 1
+                // (1, 0) (-1, 0) (-1, 0) (1, 0)
+                if(rotation.rotation == 0) move(Direction.RIGHT);
+                else if(rotation.rotation == 1) move(Direction.LEFT);
+                else if(rotation.rotation == 2) move(Direction.LEFT);
+                else move(Direction.RIGHT);
+
+
+                if(movable(Direction.NONE)) return;
+
+                // Test 2
+                // (1, -1) (-1, 1) (-1, -1) (1, 1)
+                if(rotation.rotation == 0) move(Direction.DOWN);
+                else if(rotation.rotation == 1) move(Direction.UP);
+                else if(rotation.rotation == 2) move(Direction.DOWN);
+                else move(Direction.UP);
+
+                if(movable(Direction.NONE)) return;
+                else pos.set(crntPos.r, crntPos.c);
+
+                // Test 3
+                // (0. 2) (0, -2) (0, 2) (0, -2)
+                if(rotation.rotation == 0) { move(Direction.UP); move(Direction.UP); }
+                else if(rotation.rotation == 1) { move(Direction.DOWN); move(Direction.DOWN); }
+                else if(rotation.rotation == 2) { move(Direction.UP); move(Direction.UP); }
+                else { move(Direction.DOWN); move(Direction.DOWN); }
+            
+                if(movable(Direction.NONE)) return;
+
+                // Test 4
+                // (1, 2) (-1, -2) (-1, 2) (1, -2)
+                if(rotation.rotation == 0) move(Direction.RIGHT);
+                else if(rotation.rotation == 1) move(Direction.LEFT);
+                else if(rotation.rotation == 2) move(Direction.LEFT);
+                else move(Direction.RIGHT);
+
+                if(movable(Direction.NONE)) return;
+                else { pos.set(crntPos.r, crntPos.c); rotation.minus(1); } // 모든 테스트 실패 => 원위치
+            }
+            else if(crntBlockShape == BlockShape.I) {
+                // Test 1
+                // (2, 0) (1, 0) (-2, 0) (-1, 0)
+                if(rotation.rotation == 1) { move(Direction.RIGHT); move(Direction.RIGHT); }
+                else if(rotation.rotation == 2) move(Direction.RIGHT);
+                else if(rotation.rotation == 3) { move(Direction.LEFT); move(Direction.LEFT); }
+                else move(Direction.LEFT);
+
+                if(movable(Direction.NONE)) return;
+                else pos.set(crntPos.r, crntPos.c);
+
+                // Test 2
+                // (-1, 0) (-2, 0) (1, 0) (2, 0)
+                if(rotation.rotation == 1) move(Direction.LEFT);
+                else if(rotation.rotation == 2) { move(Direction.LEFT); move(Direction.LEFT); }
+                else if(rotation.rotation == 3) move(Direction.RIGHT);
+                else { move(Direction.RIGHT); move(Direction.RIGHT); }
+
+                if(movable(Direction.NONE)) return;
+                else pos.set(crntPos.r, crntPos.c);
+
+                // Test 3
+                // (2, 1) (1, -2) (-2, -1) (-1, 2)
+                if(rotation.rotation == 1) { move(Direction.RIGHT); move(Direction.RIGHT); move(Direction.UP); }
+                else if(rotation.rotation == 2) { move(Direction.RIGHT); move(Direction.DOWN); move(Direction.DOWN); }
+                else if(rotation.rotation == 3) { move(Direction.LEFT); move(Direction.LEFT); move(Direction.DOWN); }
+                else { move(Direction.LEFT); move(Direction.UP); move(Direction.UP); }
+            
+                if(movable(Direction.NONE)) return;
+
+                // Test 4
+                // (-1, -2) (-2, 1) (1, 2) (2, -1)
+                if(rotation.rotation == 1) { move(Direction.LEFT); move(Direction.DOWN); move(Direction.DOWN); }
+                else if(rotation.rotation == 2) { move(Direction.LEFT); move(Direction.LEFT); move(Direction.UP); }
+                else if(rotation.rotation == 3) { move(Direction.RIGHT); move(Direction.UP); move(Direction.UP); }
+                else { move(Direction.RIGHT); move(Direction.RIGHT); move(Direction.DOWN); }
+
+                if(movable(Direction.NONE)) return;
+                else { pos.set(crntPos.r, crntPos.c); rotation.minus(1); } // 모든 테스트 실패 => 원위치
+            }
+        }
+    }
 }
+/*
+Wall Kick GuideLine (S Z L J T)
+
+0>>1   (-1, 0) (-1, 1) ( 0,-2) (-1,-2)
+1>>2   ( 1, 0) ( 1,-1) ( 0, 2) ( 1, 2)
+2>>3   ( 1, 0) ( 1, 1) ( 0,-2) ( 1,-2)
+3>>0   (-1, 0) (-1,-1) ( 0, 2) (-1, 2)
+
+1>>0   ( 1, 0) ( 1,-1) ( 0, 2) ( 1, 2)
+2>>1   (-1, 0) (-1, 1) ( 0,-2) (-1,-2)
+3>>2   (-1, 0) (-1,-1) ( 0, 2) (-1, 2)
+0>>3   ( 1, 0) ( 1, 1) ( 0,-2) ( 1,-2)
+
+*/
