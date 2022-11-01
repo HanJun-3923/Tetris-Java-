@@ -258,8 +258,10 @@ public class InGame {
                 }
             }
         }
-        uploadCrntBlock();
+        uploadCrntBlock(); // upload solid crntBlock
         numOfUsedBlocks++;
+        lineClear();
+        setNewBlock();
     }
     private void initLiquidBlock() {
         // init Liquid Components
@@ -480,6 +482,30 @@ public class InGame {
             }
         }
     }
+    private void lineClear() {
+        for(int r = 0; r < GameBoard.TABLE_HEIGHT; r++) {
+            if(isLineFull(r)) { // 라인이 다 찼다면
+                for(int upperRow = r - 1; upperRow >= 0; upperRow--) { // upperRow + 1 로 인해 TABLE_HEIGHT - 1 까지 반복
+                    for(int c = 0; c < GameBoard.TABLE_WIDTH; c++) {
+                        table[upperRow + 1][c].mino = table[upperRow][c].mino;
+                        table[upperRow + 1][c].isVisible = table[upperRow][c].isVisible;
+                        if(upperRow == 0) {
+                            table[upperRow][c].mino = BlockShape.NONE;
+                            table[upperRow][c].isVisible = false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    private boolean isLineFull(int r) {
+        for(int c = 0; c < GameBoard.TABLE_WIDTH; c++) {
+            // 하나라도 블럭이 비었다면 return false
+            if(table[r][c].isVisible == false) return false; 
+        }
+        // 모두 블럭이 차있으므로 return true
+        return true;
+    }
 }
 /*
 Wall Kick GuideLine (S Z L J T)
@@ -494,4 +520,11 @@ Wall Kick GuideLine (S Z L J T)
 3>>2   (-1, 0) (-1,-1) ( 0, 2) (-1, 2)
 0>>3   ( 1, 0) ( 1, 1) ( 0,-2) ( 1,-2)
 
+*/
+
+/*
+블록을 새로 꺼낼 때 -> setNewBlock
+블록을 이동했을 때(업로드) -> uploadBlock
+블록을 놓을 때 -> solidification (사용된 블록 수 +1) -> 라인 클리어
+블록을 다시 새로 꺼낼 때 -> setNewBlock
 */

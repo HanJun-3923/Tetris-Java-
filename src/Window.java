@@ -46,22 +46,21 @@ public class Window extends JFrame implements KeyListener {
             if(GameBoard.player1.movable(Direction.DOWN))
                 GameBoard.player1.move(Direction.DOWN);
         }
-        else if(key == KeyEvent.VK_UP) {
+        else if(key == KeyEvent.VK_UP) { // Up Arrow
             if(GameBoard.player1.movable(Direction.UP))
                 GameBoard.player1.move(Direction.UP);
         }
-        else if(key == KeyEvent.VK_SPACE) {
+        else if(key == KeyEvent.VK_SPACE) { // SpaceBar
             GameBoard.player1.hardDrop();
-            GameBoard.player1.setNewBlock();
         }
-        else if(key == KeyEvent.VK_D) {
+        else if(key == KeyEvent.VK_D || key == KeyEvent.VK_C) { // Key D, C
             GameBoard.player1.rotation(Direction.CLOCKWISE);
         }
-        else if(key == KeyEvent.VK_S) {
+        else if(key == KeyEvent.VK_S || key == KeyEvent.VK_X) { // Key S, X
             GameBoard.player1.rotation(Direction.COUNTER_CLOCKWISE);
         }
-        else if(key == KeyEvent.VK_SHIFT) {
-            
+        else if(key == KeyEvent.VK_A || key == KeyEvent.VK_SHIFT) { // Key A, Shift
+            //GameBoard.player1.hold();
         }
         GameBoard.player1.uploadCrntBlock();
         repaint();
