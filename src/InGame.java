@@ -54,16 +54,23 @@ public class InGame {
 
     public BlockShape[] nextBlocks = new BlockShape[BAG * 2];
     public BlockShape crntBlockShape = BlockShape.NONE;
-    public Table[][] table = new Table[GameBoard.TABLE_HEIGHT][GameBoard.TABLE_WIDTH];
+    public Table[][] table = new Table[GameBoard.MAIN_BOARD.INT_HEIGHT][GameBoard.MAIN_BOARD.INT_WIDTH];
     public BlockShape[][] crntBlock = new BlockShape[4][4];
+    public Table[][] nextBlocksTable = new Table[GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION * GameBoard.VISION_OF_NEXT_BLOCKS][GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH];
+
 
     public InGame() {
         // 다차원 배열 할당
-        for(int r = 0; r < GameBoard.TABLE_HEIGHT; r++) {
-            for(int c = 0; c < GameBoard.TABLE_WIDTH; c++) {
+        for(int r = 0; r < GameBoard.MAIN_BOARD.INT_HEIGHT; r++) {
+            for(int c = 0; c < GameBoard.MAIN_BOARD.INT_WIDTH; c++) {
                 table[r][c] = new Table(false, BlockShape.NONE);
             }
         } 
+        for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION * GameBoard.VISION_OF_NEXT_BLOCKS; r++) {
+            for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
+                nextBlocksTable[r][c] = new Table(false, BlockShape.NONE);
+            }
+        }
         for(int i = 0; i < BAG * 2; i++) {
             nextBlocks[i] = BlockShape.NONE;
         }
@@ -121,6 +128,9 @@ public class InGame {
         setCrntBlockShape();
         initPosition();
         uploadCrntBlock();
+        setNextBlocksTable();
+        if(numOfUsedBlocks % 7 == 6) setNextBlocks();
+        
     }
     public void move(Direction direction) {
         if(direction == Direction.LEFT) {
@@ -265,8 +275,8 @@ public class InGame {
     }
     private void initLiquidBlock() {
         // init Liquid Components
-        for(int r = 0; r < GameBoard.TABLE_HEIGHT; r++) {
-            for(int c = 0; c < GameBoard.TABLE_WIDTH; c++) {
+        for(int r = 0; r < GameBoard.MAIN_BOARD.INT_HEIGHT; r++) {
+            for(int c = 0; c < GameBoard.MAIN_BOARD.INT_WIDTH; c++) {
                 Position testPos = new Position(r, c);
                 BlockShape testResult = solidOrLiquid(testPos);
                 if(testResult == BlockShape.LIQUID) {
@@ -281,7 +291,7 @@ public class InGame {
         // 테트리스 화면 밖 모든 블럭은 Solid 블록이다.
 
         // Array Index Out Of Bounds Exception
-        if(testPos.c < 0 || testPos.c >= GameBoard.TABLE_WIDTH || testPos.r >= GameBoard.TABLE_HEIGHT || testPos.r < 0) 
+        if(testPos.c < 0 || testPos.c >= GameBoard.MAIN_BOARD.INT_WIDTH || testPos.r >= GameBoard.MAIN_BOARD.INT_HEIGHT || testPos.r < 0) 
             return BlockShape.SOLID; 
         
         BlockShape mino = table[testPos.r][testPos.c].mino;
@@ -483,10 +493,10 @@ public class InGame {
         }
     }
     private void lineClear() {
-        for(int r = 0; r < GameBoard.TABLE_HEIGHT; r++) {
+        for(int r = 0; r < GameBoard.MAIN_BOARD.INT_HEIGHT; r++) {
             if(isLineFull(r)) { // 라인이 다 찼다면
-                for(int upperRow = r - 1; upperRow >= 0; upperRow--) { // upperRow + 1 로 인해 TABLE_HEIGHT - 1 까지 반복
-                    for(int c = 0; c < GameBoard.TABLE_WIDTH; c++) {
+                for(int upperRow = r - 1; upperRow >= 0; upperRow--) { // upperRow + 1 로 인해 MAIN_BOARD.INT_HEIGHT - 1 까지 반복
+                    for(int c = 0; c < GameBoard.MAIN_BOARD.INT_WIDTH; c++) {
                         table[upperRow + 1][c].mino = table[upperRow][c].mino;
                         table[upperRow + 1][c].isVisible = table[upperRow][c].isVisible;
                         if(upperRow == 0) {
@@ -499,14 +509,89 @@ public class InGame {
         }
     }
     private boolean isLineFull(int r) {
-        for(int c = 0; c < GameBoard.TABLE_WIDTH; c++) {
+        for(int c = 0; c < GameBoard.MAIN_BOARD.INT_WIDTH; c++) {
             // 하나라도 블럭이 비었다면 return false
             if(table[r][c].isVisible == false) return false; 
         }
         // 모두 블럭이 차있으므로 return true
         return true;
     }
+    private void setNextBlocksTable() {
+        /*
+            [] [] [] []
+            [] [] [] []
+            [] [] [] []
+
+            [] [] [] []
+            [] [] [] []
+            [] [] [] []
+
+            [] [] [] []
+            [] [] [] []
+            [] [] [] []
+        */
+        if(numOfUsedBlocks == 0) { // INITIAL SETTING
+            for(int i = 0; i < GameBoard.VISION_OF_NEXT_BLOCKS; i++) {
+                // nextBlock 을 만든 다음 이를 nextBlocksTable의 적절한 위치에 넣는다.
+                BlockShape[][] nextBlock = new BlockShape[GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION][GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH];
+                int[][] temp = new int[4][4];
+                temp = BlockData.fetch(nextBlocks[numOfUsedBlocks % BAG + (i + 1)]); // i번째 넥스트 블럭을 가져와 temp에 int형으로 저장
+                for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION; r++) { // int -> BlockShape 형변환
+                    for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
+                        nextBlock[r][c] = intToBlockShape(temp[r][c]);
+                    }
+                }
+                for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION; r++) {
+                    for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
+                        if(nextBlock[r][c] != BlockShape.NONE) {
+                            nextBlocksTable[i * 3 + r][c].mino = nextBlock[r][c];
+                            nextBlocksTable[i * 3 + r][c].isVisible = true;
+                        } else {
+                            nextBlocksTable[i * 3 + r][c].mino = BlockShape.NONE;
+                            nextBlocksTable[i * 3 + r][c].isVisible = false;
+                        }
+                        
+                    }
+                }
+            }
+        }
+        else { // REPEATING SETTING
+            for(int r = 3; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION * GameBoard.VISION_OF_NEXT_BLOCKS; r++) {
+                for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
+                    nextBlocksTable[r - 3][c].mino = nextBlocksTable[r][c].mino; 
+                    nextBlocksTable[r - 3][c].isVisible = nextBlocksTable[r][c].isVisible; 
+                }
+            }
+            BlockShape[][] nextBlock = new BlockShape[GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION][GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH];
+            int[][] temp = new int[4][4];
+            
+            // 5번째 넥스트 블럭을 가져와 temp에 int형으로 저장
+            temp = BlockData.fetch(nextBlocks[numOfUsedBlocks % BAG + 5]); 
+            
+            for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION; r++) { // int -> BlockShape 형변환
+                for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
+                    nextBlock[r][c] = intToBlockShape(temp[r][c]);
+                }
+            }
+            for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION; r++) {
+                for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
+                    if(nextBlock[r][c] != BlockShape.NONE) {
+                        nextBlocksTable[12 + r][c].mino = nextBlock[r][c];
+                        nextBlocksTable[12 + r][c].isVisible = true;
+                    } else {
+                        nextBlocksTable[12 + r][c].mino = BlockShape.NONE;
+                        nextBlocksTable[12 + r][c].isVisible = false;
+                    }
+                    
+                }
+            }
+        }
+    }
 }
+
+
+
+
 /*
 Wall Kick GuideLine (S Z L J T)
 

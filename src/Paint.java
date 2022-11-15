@@ -9,6 +9,7 @@ public class Paint extends JPanel {
     public void paint(Graphics g) {
         super.paintComponents(g);
         paintBlock(g, GameBoard.player1); // paint Blocks according to Table's Data.
+        paintNextBlocks(g, GameBoard.player1);
         paintGrid(g); // paint Border line and Grid of Game Board.
     }
     
@@ -16,36 +17,33 @@ public class Paint extends JPanel {
     public void update(Graphics g) {
         paint(g);
     }
-    
 
     // paint Board and its Grid 
     private void paintGrid(Graphics g) { 
         g.setColor(Color.BLACK);
 
         // border line
-        g.drawRect(GameBoard.X, GameBoard.Y, GameBoard.WIDTH, GameBoard.HEIGHT); 
+        g.drawRect(GameBoard.MAIN_BOARD.COORD_X, GameBoard.MAIN_BOARD.COORD_Y, GameBoard.MAIN_BOARD.PIXEL_WIDTH, GameBoard.MAIN_BOARD.PIXEL_HEIGHT); 
         
         // Grid
         for(int i = 1; i < 10; i++) {
-            g.drawLine(GameBoard.X + i * (GameBoard.WIDTH / 10), GameBoard.Y, GameBoard.X + i * (GameBoard.WIDTH / 10), GameBoard.Y + GameBoard.HEIGHT);
+            g.drawLine(GameBoard.MAIN_BOARD.COORD_X + i * (GameBoard.MAIN_BOARD.PIXEL_WIDTH / 10), GameBoard.MAIN_BOARD.COORD_Y, GameBoard.MAIN_BOARD.COORD_X + i * (GameBoard.MAIN_BOARD.PIXEL_WIDTH / 10), GameBoard.MAIN_BOARD.COORD_Y + GameBoard.MAIN_BOARD.PIXEL_HEIGHT);
         }
         for(int i = 1; i < 20; i++) {
-            g.drawLine(GameBoard.X, GameBoard.Y + i * (GameBoard.HEIGHT / 20), GameBoard.X + GameBoard.WIDTH, GameBoard.Y + i * (GameBoard.HEIGHT / 20));
+            g.drawLine(GameBoard.MAIN_BOARD.COORD_X, GameBoard.MAIN_BOARD.COORD_Y + i * (GameBoard.MAIN_BOARD.PIXEL_HEIGHT / 20), GameBoard.MAIN_BOARD.COORD_X + GameBoard.MAIN_BOARD.PIXEL_WIDTH, GameBoard.MAIN_BOARD.COORD_Y + i * (GameBoard.MAIN_BOARD.PIXEL_HEIGHT / 20));
         }
     }
 
     // paint Blocks according to Table's Data
     private void paintBlock(Graphics g, InGame player) {
-        for (int r = 0; r < GameBoard.TABLE_HEIGHT; r++) {
-            for (int c = 0; c < GameBoard.TABLE_WIDTH; c++) {
+        for (int r = 0; r < GameBoard.MAIN_BOARD.INT_HEIGHT; r++) {
+            for (int c = 0; c < GameBoard.MAIN_BOARD.INT_WIDTH; c++) {
                 if(player.table[r][c].isVisible) { // 블럭이 존재한다면
                     setColorAccordingToMino(g, player.table[r][c].mino); // Set Graphcis Color according to Table's mino
-                    g.fillRect(GameBoard.X + GameBoard.BLOCK_SIZE * c, GameBoard.Y + GameBoard.BLOCK_SIZE * r, GameBoard.BLOCK_SIZE, GameBoard.BLOCK_SIZE);
-                    continue;
                 } else { // 블럭이 존재하지 않는다면
                     g.setColor(Color.WHITE);
-                    g.fillRect(GameBoard.X + GameBoard.BLOCK_SIZE * c, GameBoard.Y + GameBoard.BLOCK_SIZE * r, GameBoard.BLOCK_SIZE, GameBoard.BLOCK_SIZE);
                 }
+                g.fillRect(GameBoard.MAIN_BOARD.COORD_X + GameBoard.BLOCK_SIZE * c, GameBoard.MAIN_BOARD.COORD_Y + GameBoard.BLOCK_SIZE * r, GameBoard.BLOCK_SIZE, GameBoard.BLOCK_SIZE);
             }
         }
     }
@@ -73,4 +71,21 @@ public class Paint extends JPanel {
         }
 
     }
+
+    // paint NextBlocks
+    private void paintNextBlocks(Graphics g, InGame player) {
+        //setNextBlockTable
+        for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION * GameBoard.VISION_OF_NEXT_BLOCKS; r++) {
+            for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
+                if(player.nextBlocksTable[r][c].isVisible) {
+                    setColorAccordingToMino(g, player.nextBlocksTable[r][c].mino);
+                } else { // 블럭이 존재하지 않는다면
+                    g.setColor(new Color(238, 238, 238));
+                }
+                g.fillRect(GameBoard.NEXT_BLOCKS_BOARD.COORD_X + GameBoard.BLOCK_SIZE * c, GameBoard.NEXT_BLOCKS_BOARD.COORD_Y + GameBoard.BLOCK_SIZE * r, GameBoard.BLOCK_SIZE, GameBoard.BLOCK_SIZE);
+                
+            }
+        }
+    }
+
 }
