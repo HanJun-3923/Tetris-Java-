@@ -62,7 +62,7 @@ public class Window extends JFrame implements KeyListener {
         else if(key == KeyEvent.VK_A || key == KeyEvent.VK_SHIFT) { // Key A, Shift
             //GameBoard.player1.hold();
         }
-        GameBoard.player1.uploadCrntBlock();
+        GameBoard.player1.uploadCrntBlockData();
         repaint();
     }
 

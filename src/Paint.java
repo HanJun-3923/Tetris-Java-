@@ -38,8 +38,8 @@ public class Paint extends JPanel {
     private void paintBlock(Graphics g, InGame player) {
         for (int r = 0; r < GameBoard.MAIN_BOARD.INT_HEIGHT; r++) {
             for (int c = 0; c < GameBoard.MAIN_BOARD.INT_WIDTH; c++) {
-                if(player.table[r][c].isVisible) { // 블럭이 존재한다면
-                    setColorAccordingToMino(g, player.table[r][c].mino); // Set Graphcis Color according to Table's mino
+                if(player.mainTable[r][c].isVisible) { // 블럭이 존재한다면
+                    setColorAccordingToMino(g, player.mainTable[r][c].mino); // Set Graphcis Color according to Table's mino
                 } else { // 블럭이 존재하지 않는다면
                     g.setColor(Color.WHITE);
                 }

@@ -40,9 +40,7 @@ public class GameBoard extends JPanel {
     
     public GameBoard() {
 
-        player1.setNextBlocks(); // 게임 시작시 한 번 호출
-        //게임 시작
-        player1.setNewBlock(); // 블럭 지정
+        player1.gameStart();
         repaint();
         
 
