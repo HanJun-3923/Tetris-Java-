@@ -53,6 +53,7 @@ public class InGame {
             rotation = 0;
         }
     }
+    
     private final int INITIAL_POS_C = 3; // 초기 열 위치
     private final int INITIAL_POS_R = 0; // 초기 행 위치
     
@@ -88,14 +89,11 @@ public class InGame {
         //position 객체 생성
     }
     
-    
     // ***** 게임을 시작할 때 *****
     public void gameStart() {
         setNextArray();
         setNewBlock();
     }
-
-
     // ***** 블록을 놓을 때 *****
     public void putDownBlock() {
         solidification();
@@ -105,8 +103,6 @@ public class InGame {
         if(numOfUsedBlocks % BAG == 0) setNextArray();
         setNewBlock();
     }
-
-
     // ***** 새로운 블록을 불러올 때 *****
     public void setNewBlock() {
         rotation.init();
@@ -117,52 +113,17 @@ public class InGame {
         setNextBlocksTable();
         
     }
+    // ***** 매 움직임에 따른 업데이트 ******
+    public void updateWithEveryMove() {
+        uploadCrntBlockData();
+        uploadGhostBlockData();
+    }
 
-    //public
     public void hardDrop() {
         while(movable(Direction.DOWN)) {
             move(Direction.DOWN);
         }
         putDownBlock();
-    }
-    private void setNextArray() { 
-        if(nextBlocksArray[0] == BlockShape.NONE) { // set nextBlocksArray Initially
-            for(int i = 0; i < BAG * 2; i++) { 
-                boolean again;
-                do {
-                    again = false;
-                    nextBlocksArray[i] = intToBlockShape((int)(Math.random() * 10) % 7 + 1);
-                    //if i is in first BAG
-                    if(i < BAG) {
-                        for(int j = 0; j < i; j++)
-                        // if any next has same BlockShape with another in its bag, it goes again.
-                            if(nextBlocksArray[j] == nextBlocksArray[i]) again = true; 
-                    }
-                    else { // if i is in second BAG
-                        for(int j = BAG; j < i; j++) {
-                            // if any next has same BlockShape with another in its bag, it goes again.
-                            if(nextBlocksArray[j] == nextBlocksArray[i]) again = true; 
-                        }
-                    }
-                } while(again);
-            }
-        }
-        else { // put into first bag next blocks in second bag, and make new second bag.
-            for(int i = 0; i < BAG; i++) {
-                int j = i + BAG;
-                nextBlocksArray[i] = nextBlocksArray[j];
-            }
-            for(int i = BAG; i < 14; i++) {
-                boolean again;
-                do {
-                    again = false;
-                    nextBlocksArray[i] = intToBlockShape((int)(Math.random() * 10) % 7 + 1);
-                    for(int j = BAG; j < i; j++) {
-                        if(nextBlocksArray[j] == nextBlocksArray[i]) again = true;
-                    }
-                } while(again);
-            }
-        }
     }
     public void move(Direction direction) {
         if(direction == Direction.LEFT) {
@@ -250,7 +211,12 @@ public class InGame {
         setCrntBlockArray();
         uploadCrntBlockData();
     }
-    public void uploadCrntBlockData() {
+
+    //private
+    private void uploadGhostBlockData() {
+        
+    }
+    private void uploadCrntBlockData() {
         initLiquidBlock();
         for(int r = 0; r < 4; r++) {
             for(int c = 0; c < 4; c++) {
@@ -261,9 +227,45 @@ public class InGame {
             }
         }
     }
-
-
-    //private
+    private void setNextArray() { 
+        if(nextBlocksArray[0] == BlockShape.NONE) { // set nextBlocksArray Initially
+            for(int i = 0; i < BAG * 2; i++) { 
+                boolean again;
+                do {
+                    again = false;
+                    nextBlocksArray[i] = intToBlockShape((int)(Math.random() * 10) % 7 + 1);
+                    //if i is in first BAG
+                    if(i < BAG) {
+                        for(int j = 0; j < i; j++)
+                        // if any next has same BlockShape with another in its bag, it goes again.
+                            if(nextBlocksArray[j] == nextBlocksArray[i]) again = true; 
+                    }
+                    else { // if i is in second BAG
+                        for(int j = BAG; j < i; j++) {
+                            // if any next has same BlockShape with another in its bag, it goes again.
+                            if(nextBlocksArray[j] == nextBlocksArray[i]) again = true; 
+                        }
+                    }
+                } while(again);
+            }
+        }
+        else { // put into first bag next blocks in second bag, and make new second bag.
+            for(int i = 0; i < BAG; i++) {
+                int j = i + BAG;
+                nextBlocksArray[i] = nextBlocksArray[j];
+            }
+            for(int i = BAG; i < 14; i++) {
+                boolean again;
+                do {
+                    again = false;
+                    nextBlocksArray[i] = intToBlockShape((int)(Math.random() * 10) % 7 + 1);
+                    for(int j = BAG; j < i; j++) {
+                        if(nextBlocksArray[j] == nextBlocksArray[i]) again = true;
+                    }
+                } while(again);
+            }
+        }
+    }
     private void setCrntBlockShape() {
         crntBlockShape = nextBlocksArray[numOfUsedBlocks % 7];
     }
@@ -602,9 +604,4 @@ public class InGame {
     }
 }
 
-/*
-블록을 새로 꺼낼 때 -> setNewBlock
-블록을 이동했을 때(업로드) -> uploadBlock
-블록을 놓을 때 -> solidification (사용된 블록 수 +1) -> 라인 클리어
-블록을 다시 새로 꺼낼 때 -> setNewBlock
-*/
+
