@@ -113,7 +113,7 @@ public class InGame {
         setCrntBlockShape();
         setGhostArray();
         setGhostPos();
-        upload();
+        uploadToMainTable();
 
         setNextBlocksTable();
     }
@@ -121,16 +121,16 @@ public class InGame {
     public void updateWithEveryMove() {
         setGhostArray();
         setGhostPos();
-        upload();
+        uploadToMainTable();
     }
     // ***** 데이터 반영 ***
-    public void upload() {
+    public void uploadToMainTable() {
         uploadGhostBlockData();
         uploadCrntBlockData();
     }
 
     public void hardDrop() {
-        while(movable(Direction.DOWN)) {
+        while(crntBlockMovable(Direction.DOWN)) {
             move(Direction.DOWN);
         }
         putDownBlock();
@@ -149,7 +149,7 @@ public class InGame {
             crntBlockPos.r--;
         }
     }
-    public boolean movable(Direction direction) {
+    public boolean crntBlockMovable(Direction direction) {
         if(direction == Direction.LEFT) {
             for (int r = 0; r < 4; r++) {
                 for (int c = 0; c < 4; c++) {
@@ -212,17 +212,17 @@ public class InGame {
     public void rotation(Direction direction) {
         if(direction == Direction.CLOCKWISE) {
             rotation.turnClockwise();
-            if(!movable(Direction.NONE)) wallKick(Direction.CLOCKWISE);
+            if(!crntBlockMovable(Direction.NONE)) wallKick(Direction.CLOCKWISE);
         }
         else {
             rotation.turnCounterClockwise();
-            if(!movable(Direction.NONE)) wallKick(Direction.COUNTER_CLOCKWISE);
+            if(!crntBlockMovable(Direction.NONE)) wallKick(Direction.COUNTER_CLOCKWISE);
         }
         setCrntBlockArray();
         uploadCrntBlockData();
     }
 
-    //private
+    // GhostBlock 관련
     private void uploadGhostBlockData() {
         intitGhostBlock();
         for(int r = 0; r < 4; r++) {
@@ -279,6 +279,7 @@ public class InGame {
             } 
         }
     }
+    
     
     private void uploadCrntBlockData() {
         initLiquidBlock();
@@ -454,7 +455,7 @@ public class InGame {
                 else move(Direction.LEFT);
 
 
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
 
                 // Test 2
                 // (-1, 1) (1, -1) (1, 1) (-1, -1)
@@ -463,7 +464,7 @@ public class InGame {
                 else if(rotation.getValue() == 3) move(Direction.UP);
                 else move(Direction.DOWN);
 
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
                 else crntBlockPos.set(crntPos.r, crntPos.c);
 
                 // Test 3
@@ -473,7 +474,7 @@ public class InGame {
                 else if(rotation.getValue() == 3) { move(Direction.DOWN); move(Direction.DOWN); }
                 else { move(Direction.UP); move(Direction.UP); }
             
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
 
                 // Test 4
                 // (-1, -2) (1, 2) (1, -2) (-1, 2)
@@ -482,7 +483,7 @@ public class InGame {
                 else if(rotation.getValue() == 3) move(Direction.RIGHT);
                 else move(Direction.LEFT);
 
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
                 else { crntBlockPos.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
             }
             // *** I Tetromino Wall Kick Data ***
@@ -494,7 +495,7 @@ public class InGame {
                 else if(rotation.getValue() == 3) { move(Direction.RIGHT); move(Direction.RIGHT); }
                 else move(Direction.RIGHT);
 
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
                 else crntBlockPos.set(crntPos.r, crntPos.c);
 
                 // Test 2
@@ -504,7 +505,7 @@ public class InGame {
                 else if(rotation.getValue() == 3) move(Direction.LEFT);
                 else { move(Direction.LEFT); move(Direction.LEFT); }
 
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
                 else crntBlockPos.set(crntPos.r, crntPos.c);
 
                 // Test 3
@@ -514,7 +515,7 @@ public class InGame {
                 else if(rotation.getValue() == 3) { move(Direction.RIGHT); move(Direction.RIGHT); move(Direction.UP); }
                 else { move(Direction.RIGHT); move(Direction.DOWN); move(Direction.DOWN); }
             
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
 
                 // Test 4
                 // (1, 2) (2, -1) (-1, -2) (-2, 1)
@@ -523,7 +524,7 @@ public class InGame {
                 else if(rotation.getValue() == 3) { move(Direction.LEFT); move(Direction.DOWN); move(Direction.DOWN); }
                 else { move(Direction.LEFT); move(Direction.LEFT); move(Direction.UP); }
 
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
                 else { crntBlockPos.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
             }
         }
@@ -538,7 +539,7 @@ public class InGame {
                 else move(Direction.RIGHT);
 
 
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
 
                 // Test 2
                 // (1, -1) (-1, 1) (-1, -1) (1, 1)
@@ -547,7 +548,7 @@ public class InGame {
                 else if(rotation.getValue() == 2) move(Direction.DOWN);
                 else move(Direction.UP);
 
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
                 else crntBlockPos.set(crntPos.r, crntPos.c);
 
                 // Test 3
@@ -557,7 +558,7 @@ public class InGame {
                 else if(rotation.getValue() == 2) { move(Direction.UP); move(Direction.UP); }
                 else { move(Direction.DOWN); move(Direction.DOWN); }
             
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
 
                 // Test 4
                 // (1, 2) (-1, -2) (-1, 2) (1, -2)
@@ -566,7 +567,7 @@ public class InGame {
                 else if(rotation.getValue() == 2) move(Direction.LEFT);
                 else move(Direction.RIGHT);
 
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
                 else { crntBlockPos.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
             }
             // *** I Tetromino Wall Kick Data ***
@@ -578,7 +579,7 @@ public class InGame {
                 else if(rotation.getValue() == 3) { move(Direction.LEFT); move(Direction.LEFT); }
                 else move(Direction.LEFT);
 
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
                 else crntBlockPos.set(crntPos.r, crntPos.c);
 
                 // Test 2
@@ -588,7 +589,7 @@ public class InGame {
                 else if(rotation.getValue() == 3) move(Direction.RIGHT);
                 else { move(Direction.RIGHT); move(Direction.RIGHT); }
 
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
                 else crntBlockPos.set(crntPos.r, crntPos.c);
 
                 // Test 3
@@ -598,7 +599,7 @@ public class InGame {
                 else if(rotation.getValue() == 3) { move(Direction.LEFT); move(Direction.LEFT); move(Direction.DOWN); }
                 else { move(Direction.LEFT); move(Direction.UP); move(Direction.UP); }
             
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
 
                 // Test 4
                 // (-1, -2) (-2, 1) (1, 2) (2, -1)
@@ -607,7 +608,7 @@ public class InGame {
                 else if(rotation.getValue() == 3) { move(Direction.RIGHT); move(Direction.UP); move(Direction.UP); }
                 else { move(Direction.RIGHT); move(Direction.RIGHT); move(Direction.DOWN); }
 
-                if(movable(Direction.NONE)) return;
+                if(crntBlockMovable(Direction.NONE)) return;
                 else { crntBlockPos.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
             }
         }

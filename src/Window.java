@@ -35,19 +35,19 @@ public class Window extends JFrame implements KeyListener {
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
         if(key == KeyEvent.VK_RIGHT) { // Right Arrow
-            if(GameBoard.player1.movable(Direction.RIGHT))
+            if(GameBoard.player1.crntBlockMovable(Direction.RIGHT))
                 GameBoard.player1.move(Direction.RIGHT);
         } 
         else if(key == KeyEvent.VK_LEFT) { // Left Arrow
-            if(GameBoard.player1.movable(Direction.LEFT))
+            if(GameBoard.player1.crntBlockMovable(Direction.LEFT))
                 GameBoard.player1.move(Direction.LEFT);
         }
         else if(key == KeyEvent.VK_DOWN) { // Down Arrow
-            if(GameBoard.player1.movable(Direction.DOWN))
+            if(GameBoard.player1.crntBlockMovable(Direction.DOWN))
                 GameBoard.player1.move(Direction.DOWN);
         }
         else if(key == KeyEvent.VK_UP) { // Up Arrow
-            if(GameBoard.player1.movable(Direction.UP))
+            if(GameBoard.player1.crntBlockMovable(Direction.UP))
                 GameBoard.player1.move(Direction.UP);
         }
         else if(key == KeyEvent.VK_SPACE) { // SpaceBar
