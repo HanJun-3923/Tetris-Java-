@@ -52,6 +52,7 @@ public class Paint extends JPanel {
     private void setColorAccordingToMino(Graphics g, BlockShape mino) {
         // Color Profile from Jstris
 
+        //LIQUID or SOLID
         if(mino == BlockShape.I || mino == BlockShape.SLD_I) {
             g.setColor(new Color(71, 153, 210)); // RGB Color SkyBlue
         } else if (mino == BlockShape.T || mino == BlockShape.SLD_T) { 
@@ -64,12 +65,25 @@ public class Paint extends JPanel {
             g.setColor(new Color(144, 34, 44)); // RGB Color Red
         } else if (mino == BlockShape.L || mino == BlockShape.SLD_L) { 
             g.setColor(new Color(211, 100, 40)); // RGB Color Orange
-        } else if (mino == BlockShape.J || mino == BlockShape.SLD_J) { 
+        } else if (mino == BlockShape.J || mino == BlockShape.SLD_J) {
             g.setColor(new Color(29, 45, 133)); // RGB Color Blue
-        } else {
-            g.setColor(Color.black);
-        }
-
+        } 
+        // GHOST
+        else if(mino == BlockShape.GHST_I) {
+            g.setColor(new Color(183, 183, 183)); // RGB Color SkyBlue
+        } else if (mino == BlockShape.GHST_T) { 
+            g.setColor(new Color(183, 183,183)); // RGB Color Purple
+        } else if (mino == BlockShape.GHST_O) { 
+            g.setColor(new Color(183, 183,183)); // RGB Color Yellow
+        } else if (mino == BlockShape.GHST_S) { 
+            g.setColor(new Color(183, 183,183)); // RGB Color Green
+        } else if (mino == BlockShape.GHST_Z) { 
+            g.setColor(new Color(183, 183,183)); // RGB Color Red
+        } else if (mino == BlockShape.GHST_L) { 
+            g.setColor(new Color(183, 183,183)); // RGB Color Orange
+        } else if (mino == BlockShape.GHST_J) {
+            g.setColor(new Color(183, 183,183)); // RGB Color Blue
+        } 
     }
 
     // paint NextBlocks

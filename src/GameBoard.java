@@ -2,10 +2,10 @@ import javax.swing.*;
 
 enum BlockShape {
     NONE, 
-    Z, S, T, J, L, I, O,
-    SLD_Z, SLD_S, SLD_T, SLD_J, SLD_L, SLD_I, SLD_O,
-    SOLID, LIQUID,
-    GHST_Z, GHST_S, GHST_T, GHST_J, GHST_L, GHST_I, GHST_O,
+    LIQUID, Z, S, T, J, L, I, O,
+    SOLID, SLD_Z, SLD_S, SLD_T, SLD_J, SLD_L, SLD_I, SLD_O,
+    GHOST, GHST_Z, GHST_S, GHST_T, GHST_J, GHST_L, GHST_I, GHST_O,
+    
 };
 
 
@@ -43,7 +43,7 @@ public class GameBoard extends JPanel {
         NEXT_BLOCKS_BOARD.PIXEL_WIDTH  = BLOCK_SIZE * NEXT_BLOCKS_BOARD.INT_WIDTH;
         NEXT_BLOCKS_BOARD.PIXEL_HEIGHT = BLOCK_SIZE * NEXT_BLOCKS_BOARD.INT_HEIGHT;
         NEXT_BLOCKS_BOARD.COORD_X = MAIN_BOARD.COORD_X + MAIN_BOARD.PIXEL_WIDTH + 20;
-        NEXT_BLOCKS_BOARD.COORD_Y =  MAIN_BOARD.COORD_Y;
+        NEXT_BLOCKS_BOARD.COORD_Y = MAIN_BOARD.COORD_Y;
 
         player1 = new InGame();
         player1.gameStart();

@@ -57,13 +57,15 @@ public class InGame {
     private final int INITIAL_POS_C = 3; // 초기 열 위치
     private final int INITIAL_POS_R = 0; // 초기 행 위치
     
-    private Position position = new Position(INITIAL_POS_R, INITIAL_POS_C); // 블록의 좌표 (행렬)
+    private Position crntBlockPos = new Position(INITIAL_POS_R, INITIAL_POS_C); // 블록의 좌표 (행렬)
+    private Position ghostBlockPos = new Position(INITIAL_POS_R, INITIAL_POS_C);
     public Rotation rotation = new Rotation();
     private int numOfUsedBlocks = 0; // 놓아진 모든 블록의 수
 
     public Table[][] mainTable = new Table[GameBoard.MAIN_BOARD.INT_HEIGHT][GameBoard.MAIN_BOARD.INT_WIDTH];
     private BlockShape[][] crntBlockArray = new BlockShape[4][4];
     private BlockShape crntBlockShape = BlockShape.NONE;
+    private BlockShape[][] ghostBlockArray = new BlockShape[4][4];
 
     public Table[][] nextBlocksTable = new Table[GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION * GameBoard.VISION_OF_NEXT_BLOCKS][GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH];
     private BlockShape[] nextBlocksArray = new BlockShape[BAG * 2];
@@ -86,7 +88,7 @@ public class InGame {
         for(int i = 0; i < BAG * 2; i++) {
             nextBlocksArray[i] = BlockShape.NONE;
         }
-        //position 객체 생성
+        //crntBlockPos 객체 생성
     }
     
     // ***** 게임을 시작할 때 *****
@@ -106,17 +108,25 @@ public class InGame {
     // ***** 새로운 블록을 불러올 때 *****
     public void setNewBlock() {
         rotation.init();
+        crntBlockPos.init();
         setCrntBlockArray();
         setCrntBlockShape();
-        position.init();
-        uploadCrntBlockData();
+        setGhostArray();
+        setGhostPos();
+        upload();
+
         setNextBlocksTable();
-        
     }
     // ***** 매 움직임에 따른 업데이트 ******
     public void updateWithEveryMove() {
-        uploadCrntBlockData();
+        setGhostArray();
+        setGhostPos();
+        upload();
+    }
+    // ***** 데이터 반영 ***
+    public void upload() {
         uploadGhostBlockData();
+        uploadCrntBlockData();
     }
 
     public void hardDrop() {
@@ -127,16 +137,16 @@ public class InGame {
     }
     public void move(Direction direction) {
         if(direction == Direction.LEFT) {
-            position.c--;
+            crntBlockPos.c--;
         } 
         else if(direction == Direction.RIGHT) {
-            position.c++;
+            crntBlockPos.c++;
         }
         else if(direction == Direction.DOWN) {
-            position.r++;
+            crntBlockPos.r++;
         }
         else { // direction == Direction.UP
-            position.r--;
+            crntBlockPos.r--;
         }
     }
     public boolean movable(Direction direction) {
@@ -144,8 +154,8 @@ public class InGame {
             for (int r = 0; r < 4; r++) {
                 for (int c = 0; c < 4; c++) {
                     if(crntBlockArray[r][c] == crntBlockShape) { // 4x4 행렬 속에서 블럭이 존재할 때
-                        Position testPos = new Position(r + position.r, c + position.c - 1);
-                        BlockShape testResult = solidOrLiquid(testPos);
+                        Position testPos = new Position(r + crntBlockPos.r, c + crntBlockPos.c - 1);
+                        BlockShape testResult = getMainTableBlockType(testPos);
                         if(testResult == BlockShape.SOLID) return false;
                     }
                 }
@@ -155,8 +165,8 @@ public class InGame {
             for (int r = 0; r < 4; r++) {
                 for (int c = 0; c < 4; c++) {
                     if(crntBlockArray[r][c] == crntBlockShape) { // 4x4 행렬 속에서 블럭이 존재할 때
-                        Position testPos = new Position(r + position.r, c + position.c + 1);
-                        BlockShape testResult = solidOrLiquid(testPos);
+                        Position testPos = new Position(r + crntBlockPos.r, c + crntBlockPos.c + 1);
+                        BlockShape testResult = getMainTableBlockType(testPos);
                         if(testResult == BlockShape.SOLID) return false;
                     }
                 }
@@ -166,8 +176,8 @@ public class InGame {
             for (int r = 0; r < 4; r++) {
                 for (int c = 0; c < 4; c++) {
                     if(crntBlockArray[r][c] == crntBlockShape) { // 4x4 행렬 속에서 블럭이 존재할 때
-                        Position testPos = new Position(r + position.r + 1, c + position.c);
-                        BlockShape testResult = solidOrLiquid(testPos);
+                        Position testPos = new Position(r + crntBlockPos.r + 1, c + crntBlockPos.c);
+                        BlockShape testResult = getMainTableBlockType(testPos);
                         if(testResult == BlockShape.SOLID) return false;
                     }
                 }
@@ -177,8 +187,8 @@ public class InGame {
             for (int r = 0; r < 4; r++) {
                 for (int c = 0; c < 4; c++) {
                     if(crntBlockArray[r][c] == crntBlockShape) { // 4x4 행렬 속에서 블럭이 존재할 때
-                        Position testPos = new Position(r + position.r - 1, c + position.c);
-                        BlockShape testResult = solidOrLiquid(testPos);
+                        Position testPos = new Position(r + crntBlockPos.r - 1, c + crntBlockPos.c);
+                        BlockShape testResult = getMainTableBlockType(testPos);
                         if(testResult == BlockShape.SOLID) return false;
                     }
                 }
@@ -188,8 +198,8 @@ public class InGame {
             for (int r = 0; r < 4; r++) {
                 for (int c = 0; c < 4; c++) {
                     if(crntBlockArray[r][c] == crntBlockShape) { // 4x4 행렬 속에서 블럭이 존재할 때
-                        Position testPos = new Position(r + position.r, c + position.c);
-                        BlockShape testResult = solidOrLiquid(testPos);
+                        Position testPos = new Position(r + crntBlockPos.r, c + crntBlockPos.c);
+                        BlockShape testResult = getMainTableBlockType(testPos);
                         if(testResult == BlockShape.SOLID) return false;
                     }
                 }
@@ -214,15 +224,69 @@ public class InGame {
 
     //private
     private void uploadGhostBlockData() {
-        
+        intitGhostBlock();
+        for(int r = 0; r < 4; r++) {
+            for(int c = 0; c < 4; c++) {
+                if(ghostBlockArray[r][c] != BlockShape.NONE) {
+                    mainTable[ghostBlockPos.r + r][ghostBlockPos.c + c].mino = ghostBlockArray[r][c];
+                    mainTable[ghostBlockPos.r + r][ghostBlockPos.c + c].isVisible = true;
+                }
+            }
+        }
     }
+    private void intitGhostBlock() {
+        for(int r = 0; r < GameBoard.MAIN_BOARD.INT_HEIGHT; r++) {
+            for(int c = 0; c < GameBoard.MAIN_BOARD.INT_WIDTH; c++) {
+
+                if(getMainTableBlockType(new Position(r, c)) == BlockShape.GHOST) {
+                    //init
+                    mainTable[r][c].mino = BlockShape.NONE;
+                    mainTable[r][c].isVisible = false;
+                }
+            }
+        }
+    }
+    private void setGhostPos() {
+        ghostBlockPos.r = crntBlockPos.r;
+        ghostBlockPos.c = crntBlockPos.c;
+    
+        while(ghostBlockMovable()) {
+            ghostBlockPos.r++;
+        }
+    }
+    private boolean ghostBlockMovable() {
+        for (int r = 0; r < 4; r++) {
+            for (int c = 0; c < 4; c++) {
+                if(getBlockType(ghostBlockArray[r][c]) == BlockShape.GHOST) { // 4x4 행렬 속에서 블럭이 존재할 때
+                    Position testPos = new Position(r + ghostBlockPos.r + 1, c + ghostBlockPos.c);
+                    BlockShape testResult = getMainTableBlockType(testPos);
+                    if(testResult == BlockShape.SOLID) return false;
+                }
+            }
+        }
+        return true;
+    }
+    private void setGhostArray() {
+        int[][] temp = new int[4][4];
+        temp = BlockData.fetch(crntBlockShape);
+        for(int r = 0; r < 4; r++) {
+            for(int c = 0; c < 4; c++) {
+                if(intToGhostBlockShape(temp[r][c]) != BlockShape.NONE) {
+                    ghostBlockArray[r][c] = intToGhostBlockShape(temp[r][c]);
+                } else {
+                    ghostBlockArray[r][c] = BlockShape.NONE;
+                }
+            } 
+        }
+    }
+    
     private void uploadCrntBlockData() {
         initLiquidBlock();
         for(int r = 0; r < 4; r++) {
             for(int c = 0; c < 4; c++) {
                 if(crntBlockArray[r][c] != BlockShape.NONE) {
-                    mainTable[position.r + r][position.c + c].mino = crntBlockArray[r][c];
-                    mainTable[position.r + r][position.c + c].isVisible = true;
+                    mainTable[crntBlockPos.r + r][crntBlockPos.c + c].mino = crntBlockArray[r][c];
+                    mainTable[crntBlockPos.r + r][crntBlockPos.c + c].isVisible = true;
                 }
             }
         }
@@ -233,7 +297,7 @@ public class InGame {
                 boolean again;
                 do {
                     again = false;
-                    nextBlocksArray[i] = intToBlockShape((int)(Math.random() * 10) % 7 + 1);
+                    nextBlocksArray[i] = intToLiquidBlockShape((int)(Math.random() * 10) % 7 + 1);
                     //if i is in first BAG
                     if(i < BAG) {
                         for(int j = 0; j < i; j++)
@@ -258,7 +322,7 @@ public class InGame {
                 boolean again;
                 do {
                     again = false;
-                    nextBlocksArray[i] = intToBlockShape((int)(Math.random() * 10) % 7 + 1);
+                    nextBlocksArray[i] = intToLiquidBlockShape((int)(Math.random() * 10) % 7 + 1);
                     for(int j = BAG; j < i; j++) {
                         if(nextBlocksArray[j] == nextBlocksArray[i]) again = true;
                     }
@@ -274,7 +338,7 @@ public class InGame {
         temp = BlockData.fetch(nextBlocksArray[numOfUsedBlocks % BAG]);
         for(int r = 0; r < 4; r++) {
             for(int c = 0; c < 4; c++) {
-                crntBlockArray[r][c] = intToBlockShape(temp[r][c]);
+                crntBlockArray[r][c] = intToLiquidBlockShape(temp[r][c]);
             } 
         }
     }
@@ -304,7 +368,7 @@ public class InGame {
         for(int r = 0; r < GameBoard.MAIN_BOARD.INT_HEIGHT; r++) {
             for(int c = 0; c < GameBoard.MAIN_BOARD.INT_WIDTH; c++) {
                 Position testPos = new Position(r, c);
-                BlockShape testResult = solidOrLiquid(testPos);
+                BlockShape testResult = getMainTableBlockType(testPos);
                 if(testResult == BlockShape.LIQUID) {
                     //init
                     mainTable[r][c].mino = BlockShape.NONE;
@@ -313,7 +377,7 @@ public class InGame {
             }
         }
     }
-    private BlockShape solidOrLiquid(Position testPos) {
+    private BlockShape getMainTableBlockType(Position testPos) {
         // 테트리스 화면 밖 모든 블럭은 Solid 블록이다.
 
         // Array Index Out Of Bounds Exception
@@ -321,13 +385,21 @@ public class InGame {
             return BlockShape.SOLID; 
         
         BlockShape mino = mainTable[testPos.r][testPos.c].mino;
+        return getBlockType(mino);
+    }
+    private BlockShape getBlockType(BlockShape mino) {
         if (mino == BlockShape.NONE) return BlockShape.NONE;
         else if(mino == BlockShape.SLD_I || mino == BlockShape.SLD_J || mino == BlockShape.SLD_L || mino == BlockShape.SLD_O || mino == BlockShape.SLD_S || mino == BlockShape.SLD_J || mino == BlockShape.SLD_T || mino == BlockShape.SLD_Z)
             return BlockShape.SOLID;
-        else 
+        else if(mino == BlockShape.I || mino == BlockShape.J || mino == BlockShape.L || mino == BlockShape.O || mino == BlockShape.S || mino == BlockShape.J || mino == BlockShape.T || mino == BlockShape.Z)
             return BlockShape.LIQUID;
+        else if(mino == BlockShape.GHST_I || mino == BlockShape.GHST_J || mino == BlockShape.GHST_L || mino == BlockShape.GHST_O || mino == BlockShape.GHST_S || mino == BlockShape.GHST_J || mino == BlockShape.GHST_T || mino == BlockShape.GHST_Z)
+            return BlockShape.GHOST;
+        else
+            return BlockShape.NONE;
     }
-    private BlockShape intToBlockShape(int num) {
+    
+    private BlockShape intToLiquidBlockShape(int num) {
         switch(num) {
             case 1:
                 return BlockShape.I;
@@ -347,9 +419,29 @@ public class InGame {
                 return BlockShape.NONE;
         }
     }
+    private BlockShape intToGhostBlockShape(int num) {
+        switch(num) {
+            case 1:
+                return BlockShape.GHST_I;
+            case 2:
+                return BlockShape.GHST_T;
+            case 3:
+                return BlockShape.GHST_O;
+            case 4:
+                return BlockShape.GHST_S;
+            case 5:
+                return BlockShape.GHST_Z;
+            case 6:
+                return BlockShape.GHST_L;
+            case 7:
+                return BlockShape.GHST_J;
+            default:
+                return BlockShape.NONE;
+        }
+    }
     private void wallKick(Direction direction) {
         // reference: https://tetris.fandom.com/wiki/SRS
-        Position crntPos = new Position(position.r, position.c);
+        Position crntPos = new Position(crntBlockPos.r, crntBlockPos.c);
 
         if(direction == Direction.CLOCKWISE) {
             // *** J, L, T, S, Z Tetromino Wall Kick Data ***
@@ -372,7 +464,7 @@ public class InGame {
                 else move(Direction.DOWN);
 
                 if(movable(Direction.NONE)) return;
-                else position.set(crntPos.r, crntPos.c);
+                else crntBlockPos.set(crntPos.r, crntPos.c);
 
                 // Test 3
                 // (0. -2) (0, 2) (0, -2) (0, 2)
@@ -391,7 +483,7 @@ public class InGame {
                 else move(Direction.LEFT);
 
                 if(movable(Direction.NONE)) return;
-                else { position.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
+                else { crntBlockPos.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
             }
             // *** I Tetromino Wall Kick Data ***
             else if(crntBlockShape == BlockShape.I) {
@@ -403,7 +495,7 @@ public class InGame {
                 else move(Direction.RIGHT);
 
                 if(movable(Direction.NONE)) return;
-                else position.set(crntPos.r, crntPos.c);
+                else crntBlockPos.set(crntPos.r, crntPos.c);
 
                 // Test 2
                 // (1, 0) (2, 0) (-1, 0) (-2, 0)
@@ -413,7 +505,7 @@ public class InGame {
                 else { move(Direction.LEFT); move(Direction.LEFT); }
 
                 if(movable(Direction.NONE)) return;
-                else position.set(crntPos.r, crntPos.c);
+                else crntBlockPos.set(crntPos.r, crntPos.c);
 
                 // Test 3
                 // (-2, -1) (-1, 2) (2, 1) (1, -2)
@@ -432,7 +524,7 @@ public class InGame {
                 else { move(Direction.LEFT); move(Direction.LEFT); move(Direction.UP); }
 
                 if(movable(Direction.NONE)) return;
-                else { position.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
+                else { crntBlockPos.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
             }
         }
         else { // Direction.COUNTER_CLOCKWISE
@@ -456,7 +548,7 @@ public class InGame {
                 else move(Direction.UP);
 
                 if(movable(Direction.NONE)) return;
-                else position.set(crntPos.r, crntPos.c);
+                else crntBlockPos.set(crntPos.r, crntPos.c);
 
                 // Test 3
                 // (0. 2) (0, -2) (0, 2) (0, -2)
@@ -475,7 +567,7 @@ public class InGame {
                 else move(Direction.RIGHT);
 
                 if(movable(Direction.NONE)) return;
-                else { position.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
+                else { crntBlockPos.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
             }
             // *** I Tetromino Wall Kick Data ***
             else if(crntBlockShape == BlockShape.I) {
@@ -487,7 +579,7 @@ public class InGame {
                 else move(Direction.LEFT);
 
                 if(movable(Direction.NONE)) return;
-                else position.set(crntPos.r, crntPos.c);
+                else crntBlockPos.set(crntPos.r, crntPos.c);
 
                 // Test 2
                 // (-1, 0) (-2, 0) (1, 0) (2, 0)
@@ -497,7 +589,7 @@ public class InGame {
                 else { move(Direction.RIGHT); move(Direction.RIGHT); }
 
                 if(movable(Direction.NONE)) return;
-                else position.set(crntPos.r, crntPos.c);
+                else crntBlockPos.set(crntPos.r, crntPos.c);
 
                 // Test 3
                 // (2, 1) (1, -2) (-2, -1) (-1, 2)
@@ -516,7 +608,7 @@ public class InGame {
                 else { move(Direction.RIGHT); move(Direction.RIGHT); move(Direction.DOWN); }
 
                 if(movable(Direction.NONE)) return;
-                else { position.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
+                else { crntBlockPos.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
             }
         }
     }
@@ -553,7 +645,7 @@ public class InGame {
                 temp = BlockData.fetch(nextBlocksArray[numOfUsedBlocks % BAG + (i + 1)]); // i번째 넥스트 블럭을 가져와 temp에 int형으로 저장
                 for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION; r++) { // int -> BlockShape 형변환
                     for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
-                        nextBlock[r][c] = intToBlockShape(temp[r][c]);
+                        nextBlock[r][c] = intToLiquidBlockShape(temp[r][c]);
                     }
                 }
                 for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION; r++) {
@@ -585,7 +677,7 @@ public class InGame {
             
             for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION; r++) { // int -> BlockShape 형변환
                 for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
-                    nextBlock[r][c] = intToBlockShape(temp[r][c]);
+                    nextBlock[r][c] = intToLiquidBlockShape(temp[r][c]);
                 }
             }
             for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION; r++) {
