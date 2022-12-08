@@ -4,12 +4,15 @@ import java.awt.*;
 
 
 public class Paint extends JPanel {
+    Color backgroundColor = new Color(238, 238, 238);
 
     @Override
     public void paint(Graphics g) {
         super.paintComponents(g);
         paintBlock(g, GameBoard.player1); // paint Blocks according to Table's Data.
         paintNextBlocks(g, GameBoard.player1);
+        paintHoldBlocks(g, GameBoard.player1);
+        
         paintGrid(g); // paint Border line and Grid of Game Board.
     }
     
@@ -94,7 +97,7 @@ public class Paint extends JPanel {
                 if(player.nextBlocksTable[r][c].isVisible) {
                     setColorAccordingToMino(g, player.nextBlocksTable[r][c].mino);
                 } else { // 블럭이 존재하지 않는다면
-                    g.setColor(new Color(238, 238, 238));
+                    g.setColor(backgroundColor);
                 }
                 g.fillRect(GameBoard.NEXT_BLOCKS_BOARD.COORD_X + GameBoard.BLOCK_SIZE * c, GameBoard.NEXT_BLOCKS_BOARD.COORD_Y + GameBoard.BLOCK_SIZE * r, GameBoard.BLOCK_SIZE, GameBoard.BLOCK_SIZE);
                 
@@ -102,4 +105,16 @@ public class Paint extends JPanel {
         }
     }
 
+    private void paintHoldBlocks(Graphics g, InGame player) {
+        for(int r = 0; r < 3; r++) {
+            for (int c = 0; c < 4; c++) {
+                if(player.holdBlockTable[r][c].isVisible) {
+                    setColorAccordingToMino(g, player.holdBlockTable[r][c].mino);
+                } else {
+                    g.setColor(backgroundColor);
+                }
+                g.fillRect(GameBoard.HOLD_BLOCK_BOARD.COORD_X + GameBoard.BLOCK_SIZE * c, GameBoard.HOLD_BLOCK_BOARD.COORD_Y + GameBoard.BLOCK_SIZE * r, GameBoard.BLOCK_SIZE, GameBoard.BLOCK_SIZE);
+            }
+        }
+    }
 }

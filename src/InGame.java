@@ -1,64 +1,8 @@
-enum Direction { // 방향에 대한 열거형
-    NONE, LEFT, RIGHT, DOWN, UP, CLOCKWISE, COUNTER_CLOCKWISE
-};
-
 public class InGame {
-    private final int BAG = 7; // 한 가방 속에 존재하는 블록의 수
-    class Position { // 좌표를 표현하기 위한 클래스(행렬 기준 좌표)
-        int r;
-        int c;
-        public Position(int r, int c) {
-            this.r = r;
-            this.c = c;
-        }
-        public void set(int r, int c) {
-            this.r = r;
-            this.c = c;
-        }
-        public void init() {
-            r = INITIAL_POS_R;
-            c = INITIAL_POS_C;
-        }
-    }; 
-    // Main Game Board
-    class Table {
-        boolean isVisible;
-        BlockShape mino;
-        public Table(boolean isVisible, BlockShape mino) {
-            this.isVisible = isVisible;
-            this.mino = mino;
-        }
-    }  
-    class Rotation {
-        private int rotation;
-        
-        public void turnClockwise() {
-            rotation += 1;
-            while(rotation >= 4) rotation -= 4;
-            setCrntBlockArray();
-        }
-        public void turnCounterClockwise() {
-            rotation -= 1;
-            while(rotation < 0) rotation += 4;
-            setCrntBlockArray();
-        }
-        public void init() {
-            rotation = 0;
-            setCrntBlockArray();
-        }
-        public int getValue() {
-            return rotation;
-        }
-        public Rotation() {
-            rotation = 0;
-        }
-    }
+    private static final int BAG = 7; // 한 가방 속에 존재하는 블록의 수
     
-    private final int INITIAL_POS_C = 3; // 초기 열 위치
-    private final int INITIAL_POS_R = 0; // 초기 행 위치
-    
-    private Position crntBlockPos = new Position(INITIAL_POS_R, INITIAL_POS_C); // 블록의 좌표 (행렬)
-    private Position ghostBlockPos = new Position(INITIAL_POS_R, INITIAL_POS_C);
+    private Position crntBlockPos = new Position(Position.INITIAL_POS_R, Position.INITIAL_POS_C); // 블록의 좌표 (행렬)
+    private Position ghostBlockPos = new Position(Position.INITIAL_POS_R, Position.INITIAL_POS_C);
     public Rotation rotation = new Rotation();
     private int numOfUsedBlocks = 0; // 놓아진 모든 블록의 수
 
@@ -70,6 +14,10 @@ public class InGame {
     public Table[][] nextBlocksTable = new Table[GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION * GameBoard.VISION_OF_NEXT_BLOCKS][GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH];
     private BlockShape[] nextBlocksArray = new BlockShape[BAG * 2];
     
+    public Table[][] holdBlockTable = new Table[3][4];
+    private BlockShape holdBlockShape = BlockShape.NONE;
+    private boolean canHold = true;
+
 
     public InGame() {
         // mainTable 2차원 배열 할당
@@ -84,10 +32,16 @@ public class InGame {
                 nextBlocksTable[r][c] = new Table(false, BlockShape.NONE);
             }
         }
+        // holdBlockTable 2차원 객체 배열 할당
+        for(int r = 0; r < 3; r++) {
+            for (int c = 0; c < 4; c++) {
+                holdBlockTable[r][c] = new Table(false, BlockShape.NONE);
+            }
+        }
         // nextBlocksArray 1차원 배열 할당
         for(int i = 0; i < BAG * 2; i++) {
             nextBlocksArray[i] = BlockShape.NONE;
-        }
+        }  
         //crntBlockPos 객체 생성
     }
     
@@ -109,6 +63,7 @@ public class InGame {
     public void setNewBlock() {
         rotation.init();
         crntBlockPos.init();
+        if(canHold == false) canHold = true;
         setCrntBlockArray();
         setCrntBlockShape();
         setGhostArray();
@@ -117,6 +72,11 @@ public class InGame {
 
         setNextBlocksTable();
     }
+    // ***** 강제로 블럭을 바꿀 때 *****
+    private void changeCrntBlock(BlockShape blockShape) {
+        nextBlocksArray[numOfUsedBlocks % BAG] = blockShape;
+    }
+    
     // ***** 매 움직임에 따른 업데이트 ******
     public void updateWithEveryMove() {
         setGhostArray();
@@ -212,14 +172,40 @@ public class InGame {
     public void rotation(Direction direction) {
         if(direction == Direction.CLOCKWISE) {
             rotation.turnClockwise();
+            setCrntBlockArray();
             if(!crntBlockMovable(Direction.NONE)) wallKick(Direction.CLOCKWISE);
         }
         else {
             rotation.turnCounterClockwise();
+            setCrntBlockArray();
             if(!crntBlockMovable(Direction.NONE)) wallKick(Direction.COUNTER_CLOCKWISE);
         }
         setCrntBlockArray();
         uploadCrntBlockData();
+    }
+    public void hold() {
+        if(canHold == false) return;
+
+        if(holdBlockShape == BlockShape.NONE) {
+            holdBlockShape = crntBlockShape;
+            setHoldBlockTable();
+            
+            numOfUsedBlocks++;
+            if(numOfUsedBlocks % BAG == 0) setNextArray();
+            
+            setNewBlock();
+            canHold = false;
+        }
+        else {
+            BlockShape temp = holdBlockShape;
+            holdBlockShape = crntBlockShape;
+            crntBlockShape = temp;
+
+            setHoldBlockTable();
+            changeCrntBlock(crntBlockShape);
+            setNewBlock();
+            canHold = false;
+        }
     }
 
     // GhostBlock 관련
@@ -280,7 +266,6 @@ public class InGame {
         }
     }
     
-    
     private void uploadCrntBlockData() {
         initLiquidBlock();
         for(int r = 0; r < 4; r++) {
@@ -332,9 +317,9 @@ public class InGame {
         }
     }
     private void setCrntBlockShape() {
-        crntBlockShape = nextBlocksArray[numOfUsedBlocks % 7];
+        crntBlockShape = nextBlocksArray[numOfUsedBlocks % BAG];
     }
-    private void setCrntBlockArray() {
+    public void setCrntBlockArray() {
         int[][] temp = new int[4][4];
         temp = BlockData.fetch(nextBlocksArray[numOfUsedBlocks % BAG]);
         for(int r = 0; r < 4; r++) {
@@ -525,7 +510,10 @@ public class InGame {
                 else { move(Direction.LEFT); move(Direction.LEFT); move(Direction.UP); }
 
                 if(crntBlockMovable(Direction.NONE)) return;
-                else { crntBlockPos.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
+                else { // 모든 테스트 실패 => 원위치
+                    crntBlockPos.set(crntPos.r, crntPos.c); 
+                    rotation.turnCounterClockwise(); 
+                }
             }
         }
         else { // Direction.COUNTER_CLOCKWISE
@@ -609,7 +597,10 @@ public class InGame {
                 else { move(Direction.RIGHT); move(Direction.RIGHT); move(Direction.DOWN); }
 
                 if(crntBlockMovable(Direction.NONE)) return;
-                else { crntBlockPos.set(crntPos.r, crntPos.c); rotation.turnCounterClockwise(); } // 모든 테스트 실패 => 원위치
+                else { // 모든 테스트 실패 => 원위치
+                    crntBlockPos.set(crntPos.r, crntPos.c); 
+                    rotation.turnCounterClockwise();
+                }
             }
         }
     }
@@ -638,63 +629,36 @@ public class InGame {
         return true;
     }
     private void setNextBlocksTable() {
-        if(numOfUsedBlocks == 0) { // INITIAL SETTING
-            for(int i = 0; i < GameBoard.VISION_OF_NEXT_BLOCKS; i++) {
-                // nextBlock 을 만든 다음 이를 nextBlocksTable의 적절한 위치에 넣는다.
-                BlockShape[][] nextBlock = new BlockShape[GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION][GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH];
-                int[][] temp = new int[4][4];
-                temp = BlockData.fetch(nextBlocksArray[numOfUsedBlocks % BAG + (i + 1)]); // i번째 넥스트 블럭을 가져와 temp에 int형으로 저장
-                for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION; r++) { // int -> BlockShape 형변환
-                    for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
-                        nextBlock[r][c] = intToLiquidBlockShape(temp[r][c]);
-                    }
-                }
-                for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION; r++) {
-                    for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
-                        if(nextBlock[r][c] != BlockShape.NONE) {
-                            nextBlocksTable[i * 3 + r][c].mino = nextBlock[r][c];
-                            nextBlocksTable[i * 3 + r][c].isVisible = true;
-                        } else {
-                            nextBlocksTable[i * 3 + r][c].mino = BlockShape.NONE;
-                            nextBlocksTable[i * 3 + r][c].isVisible = false;
-                        }
-                        
-                    }
-                }
-            }
-        }
-        else { // REPEATING SETTING
-            for(int r = 3; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION * GameBoard.VISION_OF_NEXT_BLOCKS; r++) {
-                for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
-                    nextBlocksTable[r - 3][c].mino = nextBlocksTable[r][c].mino; 
-                    nextBlocksTable[r - 3][c].isVisible = nextBlocksTable[r][c].isVisible; 
-                }
-            }
-            BlockShape[][] nextBlock = new BlockShape[GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION][GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH];
+        for(int i = 1; i <=GameBoard.VISION_OF_NEXT_BLOCKS; i++) {
             int[][] temp = new int[4][4];
-            
-            // 5번째 넥스트 블럭을 가져와 temp에 int형으로 저장
-            temp = BlockData.fetch(nextBlocksArray[numOfUsedBlocks % BAG + 5]); 
-            
-            for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION; r++) { // int -> BlockShape 형변환
-                for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
-                    nextBlock[r][c] = intToLiquidBlockShape(temp[r][c]);
-                }
-            }
-            for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION; r++) {
-                for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
-                    if(nextBlock[r][c] != BlockShape.NONE) {
-                        nextBlocksTable[12 + r][c].mino = nextBlock[r][c];
-                        nextBlocksTable[12 + r][c].isVisible = true;
-                    } else {
-                        nextBlocksTable[12 + r][c].mino = BlockShape.NONE;
-                        nextBlocksTable[12 + r][c].isVisible = false;
-                    }
-                    
+            temp = BlockData.fetch(nextBlocksArray[numOfUsedBlocks % BAG + i]);
+            for(int r = 3 * (i - 1), r2 = 0; r < 3 * i; r++, r2++) {
+                for(int c = 0; c < 4; c++) {
+                    nextBlocksTable[r][c].mino = intToLiquidBlockShape(temp[r2][c]);
+                    if(nextBlocksTable[r][c].mino != BlockShape.NONE)
+                        nextBlocksTable[r][c].isVisible = true;
+                    else
+                        nextBlocksTable[r][c].isVisible = false;
                 }
             }
         }
     }
+    
+    private void setHoldBlockTable() {
+        int[][] temp = new int[4][4];
+        temp = BlockData.fetch(holdBlockShape);
+        for(int r = 0; r < 3; r ++) {
+            for(int c = 0; c < 4; c++) {
+                holdBlockTable[r][c].mino = intToLiquidBlockShape(temp[r][c]);
+                if(holdBlockTable[r][c].mino != BlockShape.NONE) 
+                    holdBlockTable[r][c].isVisible = true;
+                else
+                    holdBlockTable[r][c].isVisible = false;
+            }
+        }
+    }
+
+
 }
 
 

@@ -60,7 +60,7 @@ public class Window extends JFrame implements KeyListener {
             GameBoard.player1.rotation(Direction.COUNTER_CLOCKWISE);
         }
         else if(key == KeyEvent.VK_A || key == KeyEvent.VK_SHIFT) { // Key A, Shift
-            //GameBoard.player1.hold();
+            GameBoard.player1.hold();
         }
         GameBoard.player1.updateWithEveryMove();
         repaint();
