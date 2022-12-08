@@ -1,4 +1,5 @@
-// 
+package InGameElement;
+
 public class BlockData {
     private static int[][][] ITetromino = { // 1
         {   
@@ -182,21 +183,41 @@ public class BlockData {
             {0, 0, 0, 0}
         }
     };
-    public static int[][] fetch(BlockShape blockShape) {
+    public static int[][] fetch(BlockShape blockShape, int rot) {
         if(blockShape == BlockShape.I) {
-            return ITetromino[GameBoard.player1.rotation.getValue()];
+            return ITetromino[rot];
         } else if(blockShape == BlockShape.T) {
-            return TTetromino[GameBoard.player1.rotation.getValue()];
+            return TTetromino[rot];
         } else if(blockShape == BlockShape.O) {
-            return OTetromino[GameBoard.player1.rotation.getValue()];
+            return OTetromino[rot];
         } else if(blockShape == BlockShape.S) {
-            return STetromino[GameBoard.player1.rotation.getValue()];
+            return STetromino[rot];
         } else if(blockShape == BlockShape.Z) {
-            return ZTetromino[GameBoard.player1.rotation.getValue()];
+            return ZTetromino[rot];
         } else if(blockShape == BlockShape.L) {
-            return LTetromino[GameBoard.player1.rotation.getValue()];
+            return LTetromino[rot];
         } else {
-            return JTetromino[GameBoard.player1.rotation.getValue()];
+            return JTetromino[rot];
+        }
+    }
+    public static BlockShape intToLiquidBlockShape(int num) {
+        switch(num) {
+            case 1:
+                return BlockShape.I;
+            case 2:
+                return BlockShape.T;
+            case 3:
+                return BlockShape.O;
+            case 4:
+                return BlockShape.S;
+            case 5:
+                return BlockShape.Z;
+            case 6:
+                return BlockShape.L;
+            case 7:
+                return BlockShape.J;
+            default:
+                return BlockShape.NONE;
         }
     }
 }

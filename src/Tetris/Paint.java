@@ -1,4 +1,8 @@
+package Tetris;
 import javax.swing.*;
+
+import InGame.InGame;
+import InGameElement.BlockShape;
 
 import java.awt.*;
 
@@ -108,8 +112,8 @@ public class Paint extends JPanel {
     private void paintHoldBlocks(Graphics g, InGame player) {
         for(int r = 0; r < 3; r++) {
             for (int c = 0; c < 4; c++) {
-                if(player.holdBlockTable[r][c].isVisible) {
-                    setColorAccordingToMino(g, player.holdBlockTable[r][c].mino);
+                if(player.hold.table[r][c].isVisible) {
+                    setColorAccordingToMino(g, player.hold.table[r][c].mino);
                 } else {
                     g.setColor(backgroundColor);
                 }

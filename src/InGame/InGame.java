@@ -1,3 +1,13 @@
+package InGame;
+
+import InGameElement.BlockData;
+import InGameElement.BlockShape;
+import InGameElement.Direction;
+import InGameElement.Position;
+import InGameElement.Rotation;
+import InGameElement.Table;
+import Tetris.GameBoard;
+
 public class InGame {
     private static final int BAG = 7; // 한 가방 속에 존재하는 블록의 수
     
@@ -13,10 +23,8 @@ public class InGame {
 
     public Table[][] nextBlocksTable = new Table[GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION * GameBoard.VISION_OF_NEXT_BLOCKS][GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH];
     private BlockShape[] nextBlocksArray = new BlockShape[BAG * 2];
-    
-    public Table[][] holdBlockTable = new Table[3][4];
-    private BlockShape holdBlockShape = BlockShape.NONE;
-    private boolean canHold = true;
+
+    public Hold hold = new Hold();
 
 
     public InGame() {
@@ -30,12 +38,6 @@ public class InGame {
         for(int r = 0; r < GameBoard.NEXT_BLOCKS_BOARD_HEIGHT_PER_VISION * GameBoard.VISION_OF_NEXT_BLOCKS; r++) {
             for(int c = 0; c < GameBoard.NEXT_BLOCKS_BOARD.INT_WIDTH; c++) {
                 nextBlocksTable[r][c] = new Table(false, BlockShape.NONE);
-            }
-        }
-        // holdBlockTable 2차원 객체 배열 할당
-        for(int r = 0; r < 3; r++) {
-            for (int c = 0; c < 4; c++) {
-                holdBlockTable[r][c] = new Table(false, BlockShape.NONE);
             }
         }
         // nextBlocksArray 1차원 배열 할당
@@ -63,7 +65,7 @@ public class InGame {
     public void setNewBlock() {
         rotation.init();
         crntBlockPos.init();
-        if(canHold == false) canHold = true;
+        if(hold.canHold == false) hold.canHold = true;
         setCrntBlockArray();
         setCrntBlockShape();
         setGhostArray();
@@ -184,27 +186,27 @@ public class InGame {
         uploadCrntBlockData();
     }
     public void hold() {
-        if(canHold == false) return;
+        if(hold.canHold == false) return;
 
-        if(holdBlockShape == BlockShape.NONE) {
-            holdBlockShape = crntBlockShape;
-            setHoldBlockTable();
+        if(hold.blockShape == BlockShape.NONE) {
+            hold.blockShape = crntBlockShape;
+            hold.setTable();
             
             numOfUsedBlocks++;
             if(numOfUsedBlocks % BAG == 0) setNextArray();
             
             setNewBlock();
-            canHold = false;
+            hold.canHold = false;
         }
         else {
-            BlockShape temp = holdBlockShape;
-            holdBlockShape = crntBlockShape;
+            BlockShape temp = hold.blockShape;
+            hold.blockShape = crntBlockShape;
             crntBlockShape = temp;
 
-            setHoldBlockTable();
+            hold.setTable();
             changeCrntBlock(crntBlockShape);
             setNewBlock();
-            canHold = false;
+            hold.canHold = false;
         }
     }
 
@@ -254,7 +256,7 @@ public class InGame {
     }
     private void setGhostArray() {
         int[][] temp = new int[4][4];
-        temp = BlockData.fetch(crntBlockShape);
+        temp = BlockData.fetch(crntBlockShape, rotation.getValue());
         for(int r = 0; r < 4; r++) {
             for(int c = 0; c < 4; c++) {
                 if(intToGhostBlockShape(temp[r][c]) != BlockShape.NONE) {
@@ -283,7 +285,7 @@ public class InGame {
                 boolean again;
                 do {
                     again = false;
-                    nextBlocksArray[i] = intToLiquidBlockShape((int)(Math.random() * 10) % 7 + 1);
+                    nextBlocksArray[i] = BlockData.intToLiquidBlockShape((int)(Math.random() * 10) % 7 + 1);
                     //if i is in first BAG
                     if(i < BAG) {
                         for(int j = 0; j < i; j++)
@@ -308,7 +310,7 @@ public class InGame {
                 boolean again;
                 do {
                     again = false;
-                    nextBlocksArray[i] = intToLiquidBlockShape((int)(Math.random() * 10) % 7 + 1);
+                    nextBlocksArray[i] = BlockData.intToLiquidBlockShape((int)(Math.random() * 10) % 7 + 1);
                     for(int j = BAG; j < i; j++) {
                         if(nextBlocksArray[j] == nextBlocksArray[i]) again = true;
                     }
@@ -321,10 +323,10 @@ public class InGame {
     }
     public void setCrntBlockArray() {
         int[][] temp = new int[4][4];
-        temp = BlockData.fetch(nextBlocksArray[numOfUsedBlocks % BAG]);
+        temp = BlockData.fetch(nextBlocksArray[numOfUsedBlocks % BAG], rotation.getValue());
         for(int r = 0; r < 4; r++) {
             for(int c = 0; c < 4; c++) {
-                crntBlockArray[r][c] = intToLiquidBlockShape(temp[r][c]);
+                crntBlockArray[r][c] = BlockData.intToLiquidBlockShape(temp[r][c]);
             } 
         }
     }
@@ -385,27 +387,7 @@ public class InGame {
             return BlockShape.NONE;
     }
     
-    private BlockShape intToLiquidBlockShape(int num) {
-        switch(num) {
-            case 1:
-                return BlockShape.I;
-            case 2:
-                return BlockShape.T;
-            case 3:
-                return BlockShape.O;
-            case 4:
-                return BlockShape.S;
-            case 5:
-                return BlockShape.Z;
-            case 6:
-                return BlockShape.L;
-            case 7:
-                return BlockShape.J;
-            default:
-                return BlockShape.NONE;
-        }
-    }
-    private BlockShape intToGhostBlockShape(int num) {
+    public BlockShape intToGhostBlockShape(int num) {
         switch(num) {
             case 1:
                 return BlockShape.GHST_I;
@@ -631,29 +613,15 @@ public class InGame {
     private void setNextBlocksTable() {
         for(int i = 1; i <=GameBoard.VISION_OF_NEXT_BLOCKS; i++) {
             int[][] temp = new int[4][4];
-            temp = BlockData.fetch(nextBlocksArray[numOfUsedBlocks % BAG + i]);
+            temp = BlockData.fetch(nextBlocksArray[numOfUsedBlocks % BAG + i], rotation.getValue());
             for(int r = 3 * (i - 1), r2 = 0; r < 3 * i; r++, r2++) {
                 for(int c = 0; c < 4; c++) {
-                    nextBlocksTable[r][c].mino = intToLiquidBlockShape(temp[r2][c]);
+                    nextBlocksTable[r][c].mino = BlockData.intToLiquidBlockShape(temp[r2][c]);
                     if(nextBlocksTable[r][c].mino != BlockShape.NONE)
                         nextBlocksTable[r][c].isVisible = true;
                     else
                         nextBlocksTable[r][c].isVisible = false;
                 }
-            }
-        }
-    }
-    
-    private void setHoldBlockTable() {
-        int[][] temp = new int[4][4];
-        temp = BlockData.fetch(holdBlockShape);
-        for(int r = 0; r < 3; r ++) {
-            for(int c = 0; c < 4; c++) {
-                holdBlockTable[r][c].mino = intToLiquidBlockShape(temp[r][c]);
-                if(holdBlockTable[r][c].mino != BlockShape.NONE) 
-                    holdBlockTable[r][c].isVisible = true;
-                else
-                    holdBlockTable[r][c].isVisible = false;
             }
         }
     }

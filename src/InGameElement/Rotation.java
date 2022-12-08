@@ -1,3 +1,5 @@
+package InGameElement;
+
 public class Rotation {
     private int rotation;
     

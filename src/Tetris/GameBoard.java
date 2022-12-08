@@ -1,23 +1,16 @@
+package Tetris;
 import javax.swing.*;
 
-enum BlockShape {
-    NONE, 
-    LIQUID, Z, S, T, J, L, I, O,
-    SOLID, SLD_Z, SLD_S, SLD_T, SLD_J, SLD_L, SLD_I, SLD_O,
-    GHOST, GHST_Z, GHST_S, GHST_T, GHST_J, GHST_L, GHST_I, GHST_O,
-    
-};
-
-
+import InGame.InGame;
 
 public class GameBoard extends JPanel {
-    static class Coordinate {
-        int INT_WIDTH;
-        int INT_HEIGHT;
-        int PIXEL_WIDTH;
-        int PIXEL_HEIGHT;
-        int COORD_X;
-        int COORD_Y;
+    public static class Coordinate {
+        public int INT_WIDTH;
+        public int INT_HEIGHT;
+        public int PIXEL_WIDTH;
+        public int PIXEL_HEIGHT;
+        public int COORD_X;
+        public int COORD_Y;
     };
     public static final Coordinate MAIN_BOARD = new Coordinate();
     public static final Coordinate NEXT_BLOCKS_BOARD = new Coordinate();

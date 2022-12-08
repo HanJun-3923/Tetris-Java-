@@ -1,4 +1,8 @@
+package Tetris;
 import javax.swing.*;
+
+import InGameElement.Direction;
+
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
